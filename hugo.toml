@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------
+# payloadcraft — hugo configuration
+# theme: "field manual" — engineering-print design system
+# ----------------------------------------------------------------
+
+baseURL = 'https://payloadcraft.com/'
+languageCode = 'en-us'
+title = 'payloadcraft'
+theme = 'payloadcraft'
+
+# author shown in meta / feeds
+[params]
+  description = 'offensive security · red teaming · tooling — writeups, PoCs and benchmarks.'
+  author = 'payloadcraft'
+  footerNote = 'no trackers · no js · rss only'
+  docNo = 'FM-PC-26'
+  motto = 'If it can’t be reproduced, it’s a story — not a writeup.'
+
+# clean URLs: /blog/my-post/ instead of /blog/2026/10/27/my-post/
+[permalinks]
+  blog = '/blog/:slug/'
+
+[markup]
+  [markup.highlight]
+    noClasses = false   # tokens are styled by the theme's own chroma palette
+    lineNos = false
+    tabWidth = 2
+
+  [markup.goldmark.renderer]
+    unsafe = true
+
+# top navigation (order = display order, numbers are added by the theme)
+[[menus.main]]
+  name = 'blog'
+  pageRef = '/blog'
+  weight = 10
+
+[[menus.main]]
+  name = 'projects'
+  pageRef = '/projects'
+  weight = 20
+
+[[menus.main]]
+  name = 'uses'
+  pageRef = '/uses'
+  weight = 30
+
+[[menus.main]]
+  name = 'about'
+  pageRef = '/about'
+  weight = 40
+
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = true
+  [[related.indices]]
+    name = 'tags'
+    weight = 100

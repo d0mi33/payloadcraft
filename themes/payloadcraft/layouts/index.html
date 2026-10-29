@@ -1,0 +1,92 @@
+{{ define "main" }}
+
+{{ $posts := where site.RegularPages "Type" "blog" }}
+
+{{/* ============================ HERO ============================ */}}
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <p class="hero-kicker"><span class="tick" aria-hidden="true"></span>FIELD BULLETIN · {{ now.Format "January 2006" | upper }}<span class="tick" aria-hidden="true"></span></p>
+      <h1 class="hero-title">
+        <span class="ht-line">Reproduce it,</span>
+        <span class="ht-line ht-em"><em>or it didn’t</em></span>
+        <span class="ht-line">happen<span class="ht-dot">.</span></span>
+      </h1>
+      <div class="hero-brief">
+        {{ .Content }}
+      </div>
+    </div>
+
+    <aside class="hero-spec" aria-label="site status">
+      <div class="spec-head"><span>SPEC / STATUS</span><span class="spec-dot" aria-hidden="true"></span></div>
+      <div class="spec-row"><span class="k">DOC</span><span class="v">{{ site.Params.docNo | default "FM-PC-26" }}</span></div>
+      <div class="spec-row"><span class="k">ENTRIES ON FILE</span><span class="v">{{ len $posts }}</span></div>
+      <div class="spec-row"><span class="k">LAST REV</span><span class="v">{{ now.Format "02 Jan 2006" }}</span></div>
+      <div class="spec-row"><span class="k">FEED</span><span class="v"><a href="{{ "blog/index.xml" | absURL }}">RSS 2.0 FULL-TEXT</a></span></div>
+      <div class="spec-row"><span class="k">TRACKERS</span><span class="v">NONE DETECTED</span></div>
+      <blockquote class="spec-motto">{{ site.Params.motto | default "if it can’t be reproduced, it’s a story — not a writeup." }}</blockquote>
+      <div class="barcode" aria-hidden="true"></div>
+    </aside>
+  </div>
+</section>
+
+{{/* ====================== LATEST DISPATCHES ====================== */}}
+<section class="home-sec">
+  <div class="sec-band">
+    <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>LATEST DISPATCHES</h2>
+    <span class="sec-ref">SEC {{ printf "%02d" 1 }} · /blog</span>
+  </div>
+
+  {{ if gt (len $posts) 0 }}
+    <div class="ledger">
+      {{ range $i, $p := first 5 $posts }}
+        <a class="row" href="{{ $p.RelPermalink }}">
+          <span class="row-no">{{ printf "%02d" (add $i 1) }}</span>
+          <span class="row-date">{{ $p.Date.Format "2006·01·02" }}</span>
+          <span class="row-title">{{ $p.Title }}</span>
+          <span class="row-arrow" aria-hidden="true">▸</span>
+        </a>
+      {{ end }}
+    </div>
+    <p class="more"><a href="{{ "blog/" | absURL }}">▸▸ full archive</a></p>
+  {{ else }}
+    <p class="dim">nothing on file yet — first writeup in preparation.</p>
+  {{ end }}
+</section>
+
+{{/* ====================== OPERATING SECTIONS ====================== */}}
+<section class="home-sec">
+  <div class="sec-band">
+    <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>OPERATING SECTIONS</h2>
+    <span class="sec-ref">SEC 02 · INDEX</span>
+  </div>
+
+  <div class="quad">
+    <a class="quad-cell" href="{{ "blog/" | absURL }}">
+      <span class="quad-no" aria-hidden="true">01</span>
+      <span class="quad-name">blog</span>
+      <span class="quad-desc">writeups with receipts — commands, configs, verifiable results.</span>
+      <span class="quad-go" aria-hidden="true">open section ▸</span>
+    </a>
+    <a class="quad-cell" href="{{ "projects/" | absURL }}">
+      <span class="quad-no" aria-hidden="true">02</span>
+      <span class="quad-name">projects</span>
+      <span class="quad-desc">tooling on the bench — what’s building, what’s shelved, and why.</span>
+      <span class="quad-go" aria-hidden="true">open section ▸</span>
+    </a>
+    <a class="quad-cell" href="{{ "uses/" | absURL }}">
+      <span class="quad-no" aria-hidden="true">03</span>
+      <span class="quad-name">uses</span>
+      <span class="quad-desc">the working stack — hardware, terminal, and the offensive toolkit.</span>
+      <span class="quad-go" aria-hidden="true">open section ▸</span>
+    </a>
+    <a class="quad-cell" href="{{ "about/" | absURL }}">
+      <span class="quad-no" aria-hidden="true">04</span>
+      <span class="quad-name">about</span>
+      <span class="quad-desc">who runs this, the rules of engagement, and how to make contact.</span>
+      <span class="quad-go" aria-hidden="true">open section ▸</span>
+    </a>
+  </div>
+</section>
+
+{{ end }}

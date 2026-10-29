@@ -1,0 +1,28 @@
+<footer class="colophon">
+  <div class="wrap foot-grid">
+    <div class="f-cell f-stamp" aria-hidden="true">
+      <span class="stamp">UNCLASS</span>
+    </div>
+    <div class="f-cell f-block">
+      <span>DOC {{ site.Params.docNo | default "FM-PC-26" }} · SHEET 01 OF 01</span>
+      <span>SET IN FRAUNCES + IBM PLEX MONO</span>
+      <span>PRINTED ON DIGITAL PAPER · {{ now.Year }}</span>
+    </div>
+    <div class="f-cell f-note">
+      <span>{{ site.Params.footerNote | default "no trackers · no js · rss only" }}</span>
+      <span>© {{ now.Year }} {{ site.Params.author }}</span>
+      <span>handle with curiosity</span>
+    </div>
+    <div class="f-cell f-links">
+      <a href="{{ "blog/" | absURL }}">blog</a>
+      <a href="{{ "projects/" | absURL }}">projects</a>
+      <a href="{{ "about/" | absURL }}">about</a>
+      <a href="{{ "blog/index.xml" | absURL }}">rss</a>
+    </div>
+  </div>
+  <div class="wrap foot-end" aria-hidden="true">
+    <span class="tick"></span>
+    <span class="end-line">— end of document —</span>
+    <span class="tick"></span>
+  </div>
+</footer>

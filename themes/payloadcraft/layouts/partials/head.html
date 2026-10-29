@@ -1,0 +1,32 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{{ if .IsHome }}{{ site.Title }} — {{ site.Params.description }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
+
+  {{ $desc := .Summary | default site.Params.description | plainify | chomp }}
+  <meta name="description" content="{{ $desc }}">
+  <meta name="author" content="{{ site.Params.author }}">
+  <meta name="theme-color" content="#f4f1e9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)">
+
+  {{ if not .Params.noindex }}
+  <meta property="og:title" content="{{ .Title | default site.Title }}">
+  <meta property="og:description" content="{{ $desc }}">
+  <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:image" content="{{ "og.png" | absURL }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {{ end }}
+
+  <link rel="canonical" href="{{ .Permalink }}">
+  <link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | absURL }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.Title }} — blog" href="{{ "blog/index.xml" | absURL }}">
+
+  {{/* the only js on the site: one line, sets .dark before first paint so the
+       manual doesn't flash light. site itself remains fully functional without it. */}}
+  <script>(function(){try{if(localStorage.getItem('pc-mode')==='dark'||(!localStorage.getItem('pc-mode')&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}})();</script>
+
+  {{ $css := resources.Get "css/main.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+</head>

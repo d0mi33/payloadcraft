@@ -1,0 +1,36 @@
+{{ define "main" }}
+<article class="post">
+  <div class="post-band">
+    <span class="pb-code">DOC {{ site.Params.docNo | default "FM-PC-26" }} · {{ .File.LogicalName | default "dispatch" }}</span>
+    <span class="pb-right">{{ if .Params.draft }}DRAFT — UNRELEASED{{ else }}RELEASED{{ end }}</span>
+  </div>
+
+  <header class="post-head">
+    <div class="meta">
+      {{ if gt .Date.Year 1 }}<span class="meta-cell">{{ .Date.Format "2006·01·02" }}</span>{{ end }}
+      <span class="meta-cell">{{ .ReadingTime }} min read</span>
+      {{ with .Params.tags }}
+        <span class="meta-cell meta-tags">{{ range . }}#{{ . }} {{ end }}</span>
+      {{ end }}
+    </div>
+    <h1 class="post-title">{{ .Title }}</h1>
+  </header>
+
+  <div class="post-body">
+    {{ .Content }}
+  </div>
+
+  <div class="post-end" aria-hidden="true"><span class="pe-tick"></span><span>— end of file —</span><span class="pe-tick"></span></div>
+
+  <nav class="postnav" aria-label="post navigation">
+    <a class="pn-cell" href="{{ "blog/" | absURL }}">
+      <span class="pn-k" aria-hidden="true">◂◂</span>
+      <span class="pn-v">back to the index</span>
+    </a>
+    <a class="pn-cell" href="{{ "blog/index.xml" | absURL }}">
+      <span class="pn-k" aria-hidden="true">rss</span>
+      <span class="pn-v">subscribe to the feed</span>
+    </a>
+  </nav>
+</article>
+{{ end }}

@@ -1,0 +1,34 @@
+{{ define "main" }}
+{{ $pages := .Pages.ByDate.Reverse }}
+
+<section class="sec-head">
+  <div class="sec-band sec-band-hero">
+    <h1 class="sec-h1">{{ .Title }}</h1>
+    <span class="sec-ref">SEC 01 · {{ len $pages }} ENTRIES ON FILE</span>
+  </div>
+  {{ with .Content }}<div class="section-intro">{{ . }}</div>{{ end }}
+</section>
+
+{{ if gt (len $pages) 0 }}
+  {{ range $pages.GroupByPublishDate "2006" }}
+    {{ if ne .Key "0001" }}
+      <div class="year-band"><span class="year">{{ .Key }}</span><span class="year-rule" aria-hidden="true"></span></div>
+      <div class="ledger">
+        {{ range .Pages.ByPublishDate.Reverse }}
+          <a class="row" href="{{ .RelPermalink }}">
+            <span class="row-date">{{ .Date.Format "2006·01·02" }}</span>
+            <span class="row-title">{{ .Title }}</span>
+            {{ with .Params.tags }}
+              <span class="row-tags">{{ range first 2 . }}#{{ . }} {{ end }}</span>
+            {{ end }}
+            <span class="row-arrow" aria-hidden="true">▸</span>
+          </a>
+        {{ end }}
+      </div>
+    {{ end }}
+  {{ end }}
+{{ else }}
+  <p class="dim">nothing published yet.</p>
+{{ end }}
+
+{{ end }}

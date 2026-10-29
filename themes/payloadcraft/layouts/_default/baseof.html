@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+{{ partial "head.html" . }}
+<body>
+
+  <a class="skip" href="#main">skip to content</a>
+
+  {{/* ---- blueprint overlay + paper grain (pure css, no requests) ---- */}}
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="paper-grain" aria-hidden="true"></div>
+
+  {{ partial "header.html" . }}
+
+  <main id="main" class="wrap">
+    {{ block "main" . }}{{ end }}
+  </main>
+
+  {{ partial "footer.html" . }}
+
+  {{/* keep the theme toggle usable with zero libraries: one two-line script.
+       the site is fully readable with js disabled — toggle just stops persisting. */}}
+  <script>
+    (function(){
+      var b=document.getElementById('mode-btn');
+      if(!b)return;
+      b.addEventListener('click',function(){
+        var r=document.documentElement,d=r.classList.toggle('dark');
+        try{localStorage.setItem('pc-mode',d?'dark':'light')}catch(e){}
+      });
+    })();
+  </script>
+</body>
+</html>
