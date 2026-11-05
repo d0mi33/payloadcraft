@@ -1,0 +1,18 @@
+{{/* shared band + header for research entries. no js: every collapsible is a native <details>. */}}
+<div class="post-band">
+  <span class="pb-code">DOC {{ site.Params.docNo | default "FM-PC-26" }} · RESEARCH · {{ .File.ContentBaseName }}</span>
+  <span class="pb-right">{{ .Params.status | default "released" | upper }}</span>
+</div>
+
+<header class="post-head">
+  <div class="meta">
+    {{ if gt .Date.Year 1 }}<span class="meta-cell">{{ .Date.Format "2006·01·02" }}</span>{{ end }}
+    {{ with .Params.track }}<span class="meta-cell">{{ . }}</span>{{ end }}
+    {{ with .Params.tags }}
+      <span class="meta-cell meta-tags">{{ range . }}#{{ . }} {{ end }}</span>
+    {{ end }}
+  </div>
+  <h1 class="post-title">{{ .Title }}</h1>
+</header>
+
+{{ with .Content }}<div class="post-body rs-intro">{{ . }}</div>{{ end }}

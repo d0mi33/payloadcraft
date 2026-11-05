@@ -2,7 +2,7 @@
 <article class="post">
   <div class="post-band">
     <span class="pb-code">DOC {{ site.Params.docNo | default "FM-PC-26" }} · {{ .File.LogicalName | default "dispatch" }}</span>
-    <span class="pb-right">{{ if .Params.draft }}DRAFT — UNRELEASED{{ else }}RELEASED{{ end }}</span>
+    <span class="pb-right">{{ if .Params.draft }}DRAFT — UNRELEASED{{ else }}{{ .Params.status | default "RELEASED" | upper }}{{ end }}</span>
   </div>
 
   <header class="post-head">
@@ -23,9 +23,9 @@
   <div class="post-end" aria-hidden="true"><span class="pe-tick"></span><span>— end of file —</span><span class="pe-tick"></span></div>
 
   <nav class="postnav" aria-label="post navigation">
-    <a class="pn-cell" href="{{ "blog/" | absURL }}">
+    <a class="pn-cell" href="{{ .CurrentSection.RelPermalink }}">
       <span class="pn-k" aria-hidden="true">◂◂</span>
-      <span class="pn-v">back to the index</span>
+      <span class="pn-v">back to {{ .CurrentSection.Title | lower }}</span>
     </a>
     <a class="pn-cell" href="{{ "blog/index.xml" | absURL }}">
       <span class="pn-k" aria-hidden="true">rss</span>

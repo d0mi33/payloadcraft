@@ -15,8 +15,8 @@
     </div>
     <div class="f-cell f-links">
       <a href="{{ "blog/" | absURL }}">blog</a>
-      <a href="{{ "projects/" | absURL }}">projects</a>
-      <a href="{{ "about/" | absURL }}">about</a>
+      <a href="{{ "research/" | absURL }}">research</a>
+      {{ with site.Params.github }}<a href="{{ . }}" rel="me">github</a>{{ end }}
       <a href="{{ "blog/index.xml" | absURL }}">rss</a>
     </div>
   </div>

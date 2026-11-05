@@ -24,7 +24,7 @@
       var b=document.getElementById('mode-btn');
       if(!b)return;
       b.addEventListener('click',function(){
-        var r=document.documentElement,d=r.classList.toggle('dark');
+        var c=document.documentElement.classList,d=!c.contains('dark');c.toggle('dark',d);c.toggle('light',!d);
         try{localStorage.setItem('pc-mode',d?'dark':'light')}catch(e){}
       });
     })();

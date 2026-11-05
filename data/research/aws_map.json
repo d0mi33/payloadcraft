@@ -1,0 +1,110 @@
+[
+ {
+  "id": "edge",
+  "pos": "path",
+  "name": "edge",
+  "role": "The first thing the internet touches. Filters, absorbs and terminates traffic before it reaches you.",
+  "services": [
+   "cloudfront",
+   "waf",
+   "shield",
+   "certificate-manager",
+   "firewall-manager"
+  ]
+ },
+ {
+  "id": "network",
+  "pos": "path",
+  "name": "network",
+  "role": "Where traffic is allowed to flow once it is inside: subnets, ports and private paths.",
+  "services": [
+   "vpc",
+   "security-groups-nacls",
+   "network-firewall",
+   "privatelink"
+  ]
+ },
+ {
+  "id": "frontdoor",
+  "pos": "path",
+  "name": "front door",
+  "role": "Who is calling and what they are allowed to do, checked on every request.",
+  "services": [
+   "api-gateway",
+   "cognito",
+   "iam-identity-center",
+   "verified-permissions"
+  ]
+ },
+ {
+  "id": "compute",
+  "pos": "path",
+  "name": "compute",
+  "role": "Where your code runs, and how it is patched, scanned and isolated.",
+  "services": [
+   "lambda",
+   "ecs-eks",
+   "systems-manager",
+   "inspector"
+  ]
+ },
+ {
+  "id": "data",
+  "pos": "path",
+  "name": "data",
+  "role": "What the attacker is ultimately after: keys, secrets and sensitive records.",
+  "services": [
+   "kms",
+   "secrets-manager",
+   "macie",
+   "cloudhsm"
+  ]
+ },
+ {
+  "id": "build",
+  "pos": "rail-left",
+  "name": "build & ship",
+  "role": "How code becomes a running artifact. The supply chain.",
+  "services": [
+   "codepipeline-codebuild",
+   "codeguru-reviewer",
+   "q-developer",
+   "ecr",
+   "signer"
+  ]
+ },
+ {
+  "id": "detect",
+  "pos": "rail-right",
+  "name": "detect & respond",
+  "role": "Watches every layer, records what happened, and raises the alarm.",
+  "services": [
+   "cloudtrail",
+   "cloudwatch",
+   "guardduty",
+   "guardduty-eks-ecs",
+   "config",
+   "security-hub",
+   "detective",
+   "eventbridge",
+   "security-lake"
+  ]
+ },
+ {
+  "id": "foundation",
+  "pos": "base",
+  "name": "identity & governance",
+  "role": "The ground everything stands on: permissions, account guardrails and the rules you are held to.",
+  "services": [
+   "iam",
+   "sts",
+   "organizations-scps",
+   "control-tower",
+   "audit-manager",
+   "artifact",
+   "threat-composer",
+   "well-architected",
+   "shared-responsibility-model"
+  ]
+ }
+]

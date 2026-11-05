@@ -1,0 +1,75 @@
+{{ define "main" }}
+{{ $s := .Params.service }}
+{{ $map := hugo.Data.research.aws_map }}
+{{ $guide := .CurrentSection }}
+{{ $all := sort $guide.Pages "Params.service.order" }}
+
+{{/* where this service sits, and its neighbours in reading order */}}
+{{ $layer := dict }}{{ $layerNo := 0 }}
+{{ range $i, $l := $map }}{{ if eq $l.id $s.layer }}{{ $layer = $l }}{{ $layerNo = add $i 1 }}{{ end }}{{ end }}
+{{ $prev := false }}{{ $next := false }}
+{{ range $i, $p := $all }}
+  {{ if eq $p.Params.service.slug $s.slug }}
+    {{ if gt $i 0 }}{{ $prev = index $all (sub $i 1) }}{{ end }}
+    {{ if lt (add $i 1) (len $all) }}{{ $next = index $all (add $i 1) }}{{ end }}
+  {{ end }}
+{{ end }}
+
+<article class="post">
+  <div class="post-band">
+    <span class="pb-code">DOC {{ site.Params.docNo | default "FM-PC-26" }} · AWS FIELD GUIDE · {{ printf "%02d" (int $s.order) }} OF {{ len $all }}</span>
+    <span class="pb-right">L{{ printf "%02d" $layerNo }} · {{ upper $layer.name }}</span>
+  </div>
+
+  <p class="crumb"><a href="{{ "research/" | absURL }}">research</a><span>/</span><a href="{{ $guide.RelPermalink }}">aws for appsec</a><span>/</span>{{ lower $s.short }}</p>
+
+  <header class="post-head">
+    <h1 class="post-title svc-title">{{ .Title }}</h1>
+    <div class="svc-lede">{{ .Content }}</div>
+    <div class="meta">
+      <span class="meta-cell">{{ .Params.category }}</span>
+      {{ with $s.tags }}<span class="meta-cell meta-tags">{{ range . }}#{{ lower (replace . " " "-") }} {{ end }}</span>{{ end }}
+    </div>
+  </header>
+
+  {{/* position strip: the map, collapsed to one line, with this layer lit */}}
+  <nav class="am-strip" aria-label="layers">
+    {{ range $i, $l := $map }}
+      <a href="{{ $guide.RelPermalink }}#layer-{{ $l.id }}"{{ if eq $l.id $s.layer }} class="on" aria-current="true"{{ end }}><span class="no">L{{ printf "%02d" (add $i 1) }}</span>{{ $l.name }}</a>
+    {{ end }}
+  </nav>
+  <p class="am-strip-role">{{ $layer.role }}</p>
+
+  <div class="post-body svc-sections">
+    {{ range $s.sections }}
+      <h2>{{ .heading }}</h2>
+      {{ with .items }}<ul>{{ range . }}<li>{{ . | safeHTML }}</li>{{ end }}</ul>{{ end }}
+      {{ with .qa }}
+        <dl class="qa">{{ range . }}<dt>{{ .q }}</dt><dd>{{ .a | safeHTML }}</dd>{{ end }}</dl>
+      {{ end }}
+    {{ end }}
+
+    {{ $peers := slice }}
+    {{ range $all }}{{ if and (eq .Params.service.layer $s.layer) (ne .Params.service.slug $s.slug) }}{{ $peers = $peers | append . }}{{ end }}{{ end }}
+    {{ with $peers }}
+      <h2>same layer</h2>
+      <ul class="peers">
+        {{ range . }}<li><a href="{{ .RelPermalink }}">{{ .Params.service.short }}</a><span>{{ .Params.service.oneliner }}</span></li>{{ end }}
+      </ul>
+    {{ end }}
+  </div>
+
+  <nav class="postnav" aria-label="service navigation">
+    {{ with $prev }}
+      <a class="pn-cell" href="{{ .RelPermalink }}"><span class="pn-k" aria-hidden="true">◂◂ previous</span><span class="pn-v">{{ .Params.service.short }}</span></a>
+    {{ else }}
+      <a class="pn-cell" href="{{ $guide.RelPermalink }}"><span class="pn-k" aria-hidden="true">◂◂</span><span class="pn-v">back to the map</span></a>
+    {{ end }}
+    {{ with $next }}
+      <a class="pn-cell pn-next" href="{{ .RelPermalink }}"><span class="pn-k" aria-hidden="true">next ▸▸</span><span class="pn-v">{{ .Params.service.short }}</span></a>
+    {{ else }}
+      <a class="pn-cell pn-next" href="{{ $guide.RelPermalink }}#scenarios"><span class="pn-k" aria-hidden="true">▸▸</span><span class="pn-v">worked scenarios</span></a>
+    {{ end }}
+  </nav>
+</article>
+{{ end }}

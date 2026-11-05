@@ -3,11 +3,8 @@ title: "Hello, world. Again."
 slug: hello-world
 date: 2026-10-26
 draft: false
-tags: ["meta", "starter"]
+tags: ["meta", "recon"]
 ---
-<!-- 👋 This is your starter post — edit or delete it freely.
-     New posts: run `hugo new content blog/my-post.md` and flip draft to false. -->
-
 Every security blog starts the same way: "I wanted a place to dump my notes." This one starts the same way, but with a rule attached — nothing goes up here that I haven't actually run.
 
 ## What to expect
@@ -23,14 +20,14 @@ Every security blog starts the same way: "I wanted a place to dump my notes." Th
 
 Every post here should have at least one of: a command you can run, a config you can copy, or a result you can verify. Otherwise it belongs on social media, where unverifiable claims go to thrive.
 
-## Sample code block
+## First command on every engagement
 
-Because every blog post needs one:
+Before scanning anything, check where it actually points. Scope is a list of names; what you're allowed to touch is wherever those names resolve.
 
 ```bash
-# check where your subdomains actually point before you scan them
-dig +short payloadcraft.com A
-dig +short www.payloadcraft.com CNAME
+# confirm what a scoped name resolves to before you scan it
+dig +short target.example A
+dig +short www.target.example CNAME
 ```
 
-That's it. The real posts start next. `draft: false` is the only gatekeeping here.
+A CNAME pointing at a deprovisioned cloud resource is a finding in its own right (subdomain takeover). An A record pointing outside the client's IP ranges means stop and ask.

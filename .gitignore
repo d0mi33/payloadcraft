@@ -2,3 +2,6 @@
 public/
 resources/
 .DS_Store
+
+# source exports for the research pages (data now lives in data/research/)
+/*.html

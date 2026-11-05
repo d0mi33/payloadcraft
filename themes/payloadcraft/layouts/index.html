@@ -54,38 +54,55 @@
   {{ end }}
 </section>
 
+{{/* ======================== ON THE BENCH ========================= */}}
+{{ $research := (site.GetPage "/research").Pages.ByWeight }}
+{{ with $research }}
+<section class="home-sec">
+  <div class="sec-band">
+    <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>ON THE BENCH</h2>
+    <span class="sec-ref">SEC 02 · /research</span>
+  </div>
+  <div class="ledger">
+    {{ range $i, $p := first 5 . }}
+      <a class="row row-research" href="{{ $p.RelPermalink }}">
+        <span class="row-no">{{ printf "%02d" (add $i 1) }}</span>
+        <span class="row-title">{{ $p.Title }}{{ with $p.Params.summary }}<span class="row-desc">{{ . }}</span>{{ end }}</span>
+        {{ with $p.Params.status }}<span class="row-status">{{ . }}</span>{{ end }}
+        <span class="row-arrow" aria-hidden="true">▸</span>
+      </a>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
+
 {{/* ====================== OPERATING SECTIONS ====================== */}}
 <section class="home-sec">
   <div class="sec-band">
     <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>OPERATING SECTIONS</h2>
-    <span class="sec-ref">SEC 02 · INDEX</span>
+    <span class="sec-ref">SEC 03 · INDEX</span>
   </div>
 
-  <div class="quad">
+  <div class="quad quad-3">
     <a class="quad-cell" href="{{ "blog/" | absURL }}">
       <span class="quad-no" aria-hidden="true">01</span>
       <span class="quad-name">blog</span>
-      <span class="quad-desc">writeups with receipts — commands, configs, verifiable results.</span>
+      <span class="quad-desc">writeups with receipts: commands, configs, results you can verify.</span>
       <span class="quad-go" aria-hidden="true">open section ▸</span>
     </a>
-    <a class="quad-cell" href="{{ "projects/" | absURL }}">
+    <a class="quad-cell" href="{{ "research/" | absURL }}">
       <span class="quad-no" aria-hidden="true">02</span>
-      <span class="quad-name">projects</span>
-      <span class="quad-desc">tooling on the bench — what’s building, what’s shelved, and why.</span>
+      <span class="quad-name">research</span>
+      <span class="quad-desc">the agent harness benchmark, plus the field guides I keep returning to.</span>
       <span class="quad-go" aria-hidden="true">open section ▸</span>
     </a>
-    <a class="quad-cell" href="{{ "uses/" | absURL }}">
+    {{ with site.Params.github }}
+    <a class="quad-cell" href="{{ . }}" rel="me">
       <span class="quad-no" aria-hidden="true">03</span>
-      <span class="quad-name">uses</span>
-      <span class="quad-desc">the working stack — hardware, terminal, and the offensive toolkit.</span>
-      <span class="quad-go" aria-hidden="true">open section ▸</span>
+      <span class="quad-name">contact</span>
+      <span class="quad-desc">code, PoCs and benchmark configs live on GitHub. Issues are the fastest way to reach me.</span>
+      <span class="quad-go" aria-hidden="true">github ▸</span>
     </a>
-    <a class="quad-cell" href="{{ "about/" | absURL }}">
-      <span class="quad-no" aria-hidden="true">04</span>
-      <span class="quad-name">about</span>
-      <span class="quad-desc">who runs this, the rules of engagement, and how to make contact.</span>
-      <span class="quad-go" aria-hidden="true">open section ▸</span>
-    </a>
+    {{ end }}
   </div>
 </section>
 

@@ -1,0 +1,47 @@
+{{ define "main" }}
+{{ $stages := index hugo.Data.research .Params.dataset }}
+<article class="post post-wide">
+  {{ partial "research-head.html" . }}
+
+  <div class="rs-legend" aria-hidden="true">
+    <span><i class="lg lg-atk"></i>attack</span>
+    <span><i class="lg lg-def"></i>defense</span>
+    <span><i class="lg lg-note"></i>gotcha</span>
+    <span class="rs-legend-fill"></span>
+    <span>{{ len $stages }} STAGES · CLICK TO EXPAND</span>
+  </div>
+
+  <ol class="stages">
+    {{ range $stages }}
+      <li class="stage">
+        <details>
+          <summary>
+            <span class="stage-no">{{ printf "%02d" (int .n) }}</span>
+            <span class="stage-t">
+              <span class="stage-title">{{ .title }}</span>
+              <span class="stage-sub">{{ .sub }}</span>
+            </span>
+            <span class="stage-x" aria-hidden="true"></span>
+          </summary>
+          <div class="stage-body">
+            <p class="stage-concept">{{ .concept | safeHTML }}</p>
+            <div class="ad-grid">
+              <section class="ad ad-atk">
+                <h3 class="ad-h">attacks</h3>
+                <ul>{{ range .attacks }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul>
+              </section>
+              <section class="ad ad-def">
+                <h3 class="ad-h">defenses</h3>
+                <ul>{{ range .defenses }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul>
+              </section>
+            </div>
+            {{ with .gotcha }}<aside class="gotcha"><span class="gotcha-k">gotcha</span><p>{{ . | safeHTML }}</p></aside>{{ end }}
+          </div>
+        </details>
+      </li>
+    {{ end }}
+  </ol>
+
+  {{ partial "research-foot.html" . }}
+</article>
+{{ end }}

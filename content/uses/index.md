@@ -1,5 +1,6 @@
 ---
 title: uses
+draft: true   # hidden for launch — not in the nav yet
 ---
 <!-- The "/uses" page — tools you actually use daily. Edit honestly; this page
      ages well when it's real. Inspiration: uses.tech -->

@@ -25,7 +25,7 @@
 
   {{/* the only js on the site: one line, sets .dark before first paint so the
        manual doesn't flash light. site itself remains fully functional without it. */}}
-  <script>(function(){try{if(localStorage.getItem('pc-mode')==='dark'||(!localStorage.getItem('pc-mode')&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}})();</script>
+  <script>(function(){try{var m=localStorage.getItem('pc-mode'),c=document.documentElement.classList;if(m==='light')c.add('light');else if(m==='dark'||matchMedia('(prefers-color-scheme: dark)').matches)c.add('dark')}catch(e){}})();</script>
 
   {{ $css := resources.Get "css/main.css" | minify | fingerprint }}
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">

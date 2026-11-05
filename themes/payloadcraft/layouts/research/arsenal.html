@@ -1,0 +1,92 @@
+{{ define "main" }}
+{{ $d := index hugo.Data.research .Params.dataset }}
+{{ $map := hugo.Data.research.aws_map }}
+
+{{/* slug → generated service page (see _content.gotmpl next to the section's _index.md) */}}
+{{ $bySlug := dict }}
+{{ range $p := .Pages }}{{ with $p.Params.service }}{{ $bySlug = merge $bySlug (dict .slug $p) }}{{ end }}{{ end }}
+{{ $svc := dict }}
+{{ range $d.categories }}{{ range .services }}{{ $svc = merge $svc (dict .slug .) }}{{ end }}{{ end }}
+
+<article class="post post-wide">
+  {{ partial "research-head.html" . }}
+
+  {{/* ============================ MAP ============================ */}}
+  <div class="rs-legend" aria-hidden="true">
+    <span><i class="lg lg-atk"></i>request path</span>
+    <span><i class="lg lg-def"></i>supply chain</span>
+    <span><i class="lg lg-note"></i>watches everything</span>
+    <span class="rs-legend-fill"></span>
+    <span>{{ len $svc }} SERVICES · {{ len $map }} LAYERS</span>
+  </div>
+
+  <div class="awsmap">
+    <div class="am-in" aria-hidden="true"><span class="am-in-k">▾ internet</span><span>a request enters here</span></div>
+
+    {{ range $i, $l := $map }}
+      {{ $no := printf "%02d" (add $i 1) }}
+      {{ $cls := printf "am-layer am-%s" $l.pos }}
+      {{ if eq $l.pos "path" }}{{ if eq $i 0 }}<div class="am-stack">{{ end }}{{ end }}
+      <section class="{{ $cls }}" id="layer-{{ $l.id }}" aria-labelledby="lh-{{ $l.id }}">
+        <header class="am-head">
+          <span class="am-no">L{{ $no }}</span>
+          <h2 class="am-name" id="lh-{{ $l.id }}">{{ $l.name }}</h2>
+          <p class="am-role">{{ $l.role }}</p>
+        </header>
+        <ul class="am-chips">
+          {{ range $l.services }}
+            {{ $s := index $svc . }}{{ $p := index $bySlug . }}
+            <li><a class="am-chip" href="{{ $p.RelPermalink }}">
+              <span class="am-chip-n">{{ $s.short }}</span>
+              <span class="am-chip-d">{{ $s.oneliner }}</span>
+            </a></li>
+          {{ end }}
+        </ul>
+      </section>
+      {{ if eq $l.pos "path" }}
+        {{ $next := index $map (add $i 1) }}
+        {{ if eq $next.pos "path" }}<div class="am-flow" aria-hidden="true">▾</div>{{ else }}</div>{{ end }}
+      {{ end }}
+    {{ end }}
+  </div>
+
+  {{/* ========================= CATALOGUE ========================= */}}
+  <section class="rs-sec" id="catalogue">
+    <div class="sec-band">
+      <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>catalogue</h2>
+      <span class="sec-ref">BY JOB · {{ len $d.categories }} GROUPS</span>
+    </div>
+    <div class="cat-table">
+      {{ range $i, $c := $d.categories }}
+        <div class="cat-row">
+          <span class="cat-k"><span class="no">{{ printf "%02d" (add $i 1) }}</span>{{ $c.category }}</span>
+          <span class="cat-v">
+            {{ range $c.services }}{{ with index $bySlug .slug }}<a href="{{ .RelPermalink }}">{{ .Params.service.short }}</a>{{ end }}{{ end }}
+          </span>
+        </div>
+      {{ end }}
+    </div>
+  </section>
+
+  {{/* ========================= SCENARIOS ========================= */}}
+  <section class="rs-sec" id="scenarios">
+    <div class="sec-band">
+      <h2 class="sec-title"><span class="tick" aria-hidden="true"></span>scenarios</h2>
+      <span class="sec-ref">{{ len $d.scenarios }} WORKED ANSWERS</span>
+    </div>
+    <div class="svc-list">
+      {{ range $d.scenarios }}
+        <details class="svc">
+          <summary>
+            <span class="svc-t"><span class="svc-name svc-q">{{ .q | safeHTML }}</span></span>
+            <span class="stage-x" aria-hidden="true"></span>
+          </summary>
+          <div class="svc-body scenario">{{ .a | safeHTML }}</div>
+        </details>
+      {{ end }}
+    </div>
+  </section>
+
+  {{ partial "research-foot.html" . }}
+</article>
+{{ end }}

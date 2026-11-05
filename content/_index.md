@@ -1,11 +1,10 @@
 ---
 title: payloadcraft
 ---
-Offensive security, red team tooling, and honest benchmarks. I break things professionally — and build the tools I wish existed after hours.
+I'm **d0mi33**. I work in offensive security: red teaming, pen testing, and application security. In practice that means web apps, cloud estates, and the occasional overconfident CI pipeline. Outside the day job I build tools and run benchmarks, because "trust me, it's better" is not a methodology.
 
-**Currently:** benchmarking open-source agent harnesses on the same repos, same model, same clock — and writing up what survives.
+**Currently:** running open-source agent harnesses against each other on the same repo, with the same model and the same time budget, and writing up which ones hold up.
 
-- writeups → [blog](/blog/)
-- what I'm building → [projects](/projects/)
-- the stack → [uses](/uses/)
-- who → [about](/about/)
+- writeups → [blog](blog/)
+- the harness benchmark + field guides → [research](research/)
+- code & contact → [github.com/d0mi33](https://github.com/d0mi33)
