@@ -4,7 +4,7 @@
 {{- $limit := site.Config.Services.RSS.Limit -}}
 {{- if ge $limit 1 }}{{ $pages = $pages | first $limit }}{{ end -}}
 {{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
-{{ printf "<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>" ("rss.xsl" | absURL) | safeHTML }}
+{{ printf "<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>" ("rss.xsl" | relURL) | safeHTML }}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>{{ if eq .Title site.Title }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
