@@ -45,10 +45,11 @@ jobs:
           HUGO_ENVIRONMENT: production
           TZ: America/New_York
         run: |
+          # baseURL comes from hugo.toml (https). the pages action's base_url
+          # reports http:// until "Enforce HTTPS" is on, which breaks the feed.
           hugo \
             --gc \
-            --minify \
-            --baseURL "${{ steps.pages.outputs.base_url }}/"
+            --minify
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
