@@ -1,0 +1,32 @@
+{{ define "main" }}
+{{ $pages := .Pages.ByWeight }}
+
+<section class="sec-head">
+  <div class="sec-band sec-band-hero">
+    <h1 class="sec-h1">{{ .Title }}</h1>
+    <span class="sec-ref">SEC 02 · {{ len $pages }} ENTRIES ON FILE</span>
+  </div>
+  {{ with .Content }}<div class="section-intro">{{ . }}</div>{{ end }}
+</section>
+
+{{/* entries are grouped by `track` in front matter, in order of first appearance */}}
+{{ $tracks := slice }}
+{{ range $pages }}{{ $t := .Params.track | default "misc" }}{{ if not (in $tracks $t) }}{{ $tracks = $tracks | append $t }}{{ end }}{{ end }}
+
+{{ range $ti, $track := $tracks }}
+  <div class="year-band"><span class="year">TRACK {{ printf "%02d" (add $ti 1) }} · {{ upper $track }}</span><span class="year-rule" aria-hidden="true"></span></div>
+  <div class="ledger">
+    {{ range $i, $p := where $pages "Params.track" $track }}
+      <a class="row row-research" href="{{ $p.RelPermalink }}">
+        <span class="row-no">{{ printf "%02d" (add $i 1) }}</span>
+        <span class="row-title">{{ $p.Title }}{{ with $p.Params.summary }}<span class="row-desc">{{ . }}</span>{{ end }}</span>
+        {{ with $p.Params.status }}<span class="row-status">{{ . }}</span>{{ end }}
+        <span class="row-arrow" aria-hidden="true">▸</span>
+      </a>
+    {{ end }}
+  </div>
+{{ else }}
+  <p class="dim">nothing on file yet.</p>
+{{ end }}
+
+{{ end }}

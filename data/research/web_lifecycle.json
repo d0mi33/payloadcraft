@@ -1,0 +1,351 @@
+[
+ {
+  "n": 1,
+  "title": "DNS resolution",
+  "sub": "Browser → OS → resolver → root → TLD → authoritative",
+  "concept": "Browser checks its cache, then OS cache, then asks the configured DNS resolver (e.g. 8.8.8.8). The resolver walks the hierarchy: root server → TLD (.com) → authoritative nameserver for example.com. Returns the IP address.",
+  "attacks": [
+   {
+    "name": "DNS spoofing / cache poisoning",
+    "desc": "Attacker injects fake DNS responses into a resolver's cache. Victim's browser gets a malicious IP for example.com and connects to the attacker's server instead."
+   },
+   {
+    "name": "DNS hijacking",
+    "desc": "Attacker compromises the DNS resolver itself (rogue Wi-Fi, compromised router) and returns attacker-controlled IPs for any domain."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "DNSSEC",
+    "desc": "Digitally signs DNS records so resolvers can verify responses are authentic and untampered. Doesn't encrypt — just integrity and authenticity."
+   },
+   {
+    "name": "DNS over HTTPS (DoH) / DNS over TLS (DoT)",
+    "desc": "Encrypts the DNS query itself so an attacker on the network can't see or modify what domains you're looking up."
+   }
+  ],
+  "gotcha": "DNSSEC does NOT encrypt DNS queries — it only signs them. An attacker can still see which domains you resolve. DoH/DoT provide the encryption layer."
+ },
+ {
+  "n": 2,
+  "title": "TCP handshake",
+  "sub": "SYN → SYN-ACK → ACK (3-way handshake)",
+  "concept": "Client sends SYN with a sequence number. Server replies SYN-ACK with its own sequence number and acknowledges client's. Client sends ACK. Connection established. This is layer 4 — no encryption yet.",
+  "attacks": [
+   {
+    "name": "SYN flood (DoS)",
+    "desc": "Attacker sends thousands of SYN packets with spoofed source IPs. Server allocates resources for each half-open connection, exhausting its connection table. Legitimate users can't connect."
+   },
+   {
+    "name": "TCP session hijacking",
+    "desc": "If attacker can predict sequence numbers, they can inject packets into an established TCP session, impersonating one side of the connection."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "SYN cookies",
+    "desc": "Server doesn't allocate state on SYN. Instead it encodes the connection info into the sequence number of the SYN-ACK. Only allocates resources when a valid ACK returns. Defeats SYN floods."
+   },
+   {
+    "name": "Rate limiting / firewall rules",
+    "desc": "Limit SYN packets per source IP. Modern OS TCP stacks have built-in SYN flood mitigation."
+   }
+  ],
+  "gotcha": "Why does traceroute use UDP by default (not TCP)? Because UDP doesn't need a handshake — it just sends a packet with an incrementing TTL. Each router that decrements TTL to 0 sends back an ICMP Time Exceeded, revealing itself. TCP would require a handshake at each hop. Some firewalls block UDP traceroute, so you can use TCP traceroute (e.g. tcptraceroute) which sends SYN packets instead."
+ },
+ {
+  "n": 3,
+  "title": "TLS handshake",
+  "sub": "ClientHello → ServerHello → certificate → key exchange → encrypted channel",
+  "concept": "<b>ClientHello</b>: client sends supported cipher suites and a random number. <b>ServerHello</b>: server picks a cipher suite, sends its certificate (contains its public key, signed by a CA). Client verifies the cert chain up to a trusted root CA. They perform a key exchange (Diffie-Hellman in TLS 1.3) to derive a shared <b>session key</b>. All further traffic is encrypted with this symmetric key.",
+  "attacks": [
+   {
+    "name": "SSL stripping",
+    "desc": "Attacker intercepts the initial HTTP request (before TLS) and proxies the connection: HTTPS to the real server, plain HTTP to the victim. Victim sees no padlock but the page works."
+   },
+   {
+    "name": "Man-in-the-middle (rogue cert)",
+    "desc": "Attacker presents their own certificate for example.com. Only works if victim's device trusts the attacker's CA — e.g. corporate proxy with a trusted root installed, or malware that added a root CA."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "HSTS (Strict-Transport-Security header)",
+    "desc": "Server tells browser: never use HTTP with me, always HTTPS. Eliminates the plaintext first-request window that SSL stripping exploits."
+   },
+   {
+    "name": "HSTS preload list",
+    "desc": "Browser ships with a hardcoded list of domains that must always be HTTPS. Fixes the first-visit problem — browser has never seen the HSTS header yet, but it's preloaded."
+   },
+   {
+    "name": "Certificate Transparency (CT)",
+    "desc": "All issued certificates are logged in public append-only logs. Domain owners can monitor for unauthorized certs issued for their domain."
+   },
+   {
+    "name": "Certificate pinning (HPKP — deprecated)",
+    "desc": "Browser remembers which public key(s) to expect for a domain. Prevented rogue CA attacks but was dangerous to deploy (pin the wrong key = permanent lockout). Replaced by CT."
+   }
+  ],
+  "gotcha": "TLS 1.3 completes the handshake in 1 round-trip (1-RTT), vs 2 in TLS 1.2. It also removed insecure cipher suites (RC4, 3DES, static RSA key exchange). TLS 1.3 only uses ephemeral Diffie-Hellman, meaning every session gets unique keys — even if the server's private key is later compromised, past sessions can't be decrypted. This is called forward secrecy."
+ },
+ {
+  "n": 4,
+  "title": "HTTP request & response",
+  "sub": "Method + path + headers + body → status + headers + body",
+  "concept": "<b>Request</b>: method (GET/POST/PUT/DELETE), path, headers (Host, Cookie, User-Agent, Content-Type, Authorization), optional body. <b>Response</b>: status code (200/301/403/404/500), headers (Set-Cookie, Content-Type, security headers), body (HTML/JSON). Headers are where security controls live.",
+  "attacks": [
+   {
+    "name": "HTTP request smuggling",
+    "desc": "Exploits differences in how a frontend proxy and backend server parse Content-Length vs Transfer-Encoding headers. Attacker crafts a request that the proxy sees as one request but the backend splits into two — the second is attacker-controlled."
+   },
+   {
+    "name": "Host header injection",
+    "desc": "If the app trusts the Host header for generating URLs (password reset links, redirects), attacker can set Host to their domain and trick the app into generating links pointing to the attacker."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Consistent parsing",
+    "desc": "Frontend and backend must agree on how to parse request boundaries. Reject ambiguous requests with both Content-Length and Transfer-Encoding."
+   },
+   {
+    "name": "Never trust Host header for security logic",
+    "desc": "Use a server-configured canonical hostname, not the client-supplied Host header, for generating URLs."
+   }
+  ],
+  "gotcha": "HTTP methods are not enforced by the browser for security — the server must enforce them. A GET request should never perform a state-changing action (like deleting data). If it does, an <code>&lt;img src=&#x27;https://bank.com/delete?id=5&#x27;&gt;</code> on an evil page would trigger it — the browser sends GET requests for images automatically with cookies."
+ },
+ {
+  "n": 5,
+  "title": "Same-origin policy (SOP)",
+  "sub": "Origin = scheme + host + port. Cross-origin reads blocked by default.",
+  "concept": "A script on origin A cannot <b>read</b> responses from origin B. The browser will still <b>send</b> the request (and attach cookies), but blocks the script from seeing the response. This is the browser's core security boundary.",
+  "attacks": [
+   {
+    "name": "SOP doesn't prevent sends — only reads",
+    "desc": "CSRF exploits this gap: the request goes out with cookies, the server acts on it. The attacker doesn't need to read the response — the damage (transfer, password change) is done on send."
+   },
+   {
+    "name": "SOP bypass via XSS",
+    "desc": "If attacker gets script execution on the target origin, SOP is irrelevant — the script is same-origin. This is why XSS is critical severity."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "The policy itself is the defense",
+    "desc": "SOP is built into every browser. It's the foundation that makes CORS, CSP, and cookie isolation meaningful."
+   }
+  ],
+  "gotcha": "SOP does NOT block: loading images (<code>&lt;img&gt;</code>), scripts (<code>&lt;script src&gt;</code>), stylesheets (<code>&lt;link&gt;</code>), or form submissions cross-origin. It blocks JavaScript from reading the response. So <code>&lt;script src=&#x27;https://other.com/lib.js&#x27;&gt;</code> works — the browser executes it — but fetch('https://other.com/api') blocks the JS from reading the result."
+ },
+ {
+  "n": 6,
+  "title": "CORS",
+  "sub": "Server opts in to cross-origin reads via Access-Control-Allow-Origin",
+  "concept": "CORS is the controlled door in the SOP wall. The <b>server</b> sends headers telling the browser which origins can read its responses. <b>Simple requests</b> (GET/POST with basic headers) go straight through — browser checks the response header after. <b>Preflighted requests</b> (PUT, DELETE, custom headers, JSON Content-Type) trigger an OPTIONS preflight first.",
+  "attacks": [
+   {
+    "name": "Overly permissive CORS",
+    "desc": "Setting Access-Control-Allow-Origin: * lets any site read your responses (though browsers won't send credentials with wildcard)."
+   },
+   {
+    "name": "Origin reflection + credentials",
+    "desc": "Backend reads the Origin header and reflects it back as allowed, combined with Allow-Credentials: true. Now ANY origin gets authenticated cross-origin access. This is the real critical misconfiguration."
+   },
+   {
+    "name": "Null origin abuse",
+    "desc": "Some servers whitelist the 'null' origin. Sandboxed iframes and local file:// pages send Origin: null — attacker can use a sandboxed iframe to exploit this."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Explicit origin whitelist",
+    "desc": "Only allow specific, known origins — never reflect the request Origin blindly."
+   },
+   {
+    "name": "Never combine wildcard with credentials",
+    "desc": "Browsers enforce this — * with Allow-Credentials: true is rejected. But reflected origins with credentials bypass this safety."
+   }
+  ],
+  "gotcha": "CORS is enforced by the BROWSER, not the server. If you call the API from curl, Postman, or a backend server, CORS doesn't apply — there's no browser to enforce it. CORS only protects against browser-based cross-origin reads from scripts. This is why it's not a substitute for authentication."
+ },
+ {
+  "n": 7,
+  "title": "CSRF",
+  "sub": "Attacker tricks victim's browser into sending an authenticated request",
+  "concept": "Victim is logged into bank.com. They visit evil.com, which has a hidden form that auto-submits a POST to bank.com/transfer. Browser attaches bank.com cookies automatically. Bank sees a valid authenticated request and executes the transfer.",
+  "attacks": [
+   {
+    "name": "Classic form-based CSRF",
+    "desc": "Hidden auto-submitting form on attacker's page. Works for any POST with URL-encoded or multipart body."
+   },
+   {
+    "name": "Login CSRF",
+    "desc": "Attacker forces victim to log in to the attacker's account on a service. Victim doesn't realize they're in the attacker's account and enters sensitive data (credit card, personal info) that the attacker can then access."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Anti-CSRF token",
+    "desc": "Server generates a random token per session, embeds it in forms. Server rejects requests without a valid token. Attacker can't get the token (SOP blocks reading the page)."
+   },
+   {
+    "name": "SameSite cookie attribute",
+    "desc": "Lax (default in modern browsers): cookies not sent on cross-site POST. Strict: cookies not sent on ANY cross-site request. Eliminates CSRF for apps that set it."
+   },
+   {
+    "name": "Checking Origin/Referer headers",
+    "desc": "Server verifies the request came from its own origin. Less robust than tokens (headers can be stripped by privacy tools) but useful as defense-in-depth."
+   }
+  ],
+  "gotcha": "CSRF is harder against JSON APIs because HTML forms can't set Content-Type: application/json. Using fetch() to set it triggers a CORS preflight, which blocks it (unless the server has misconfigured CORS). So Content-Type enforcement + correct CORS = strong CSRF defense for APIs even without tokens."
+ },
+ {
+  "n": 8,
+  "title": "XSS (cross-site scripting)",
+  "sub": "Attacker executes their script in victim's browser on a trusted origin",
+  "concept": "Attacker injects malicious script that runs in the context of the target origin. Since it's same-origin, it bypasses SOP entirely — full access to DOM, cookies (unless HttpOnly), and can make authenticated requests.",
+  "attacks": [
+   {
+    "name": "Reflected XSS",
+    "desc": "Payload in the URL — server reflects it unsanitized into the response. Victim must click a crafted link. One victim per click."
+   },
+   {
+    "name": "Stored XSS",
+    "desc": "Payload saved in the database (comment, review, profile). Every user who views that content gets hit. One injection, many victims."
+   },
+   {
+    "name": "DOM-based XSS",
+    "desc": "Payload never reaches the server. Client-side JS reads from a source (URL, document.referrer) and writes to a dangerous sink (innerHTML, eval, document.write) without sanitizing."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Output encoding / escaping",
+    "desc": "Encode user input based on context: HTML entities in HTML, JS escaping in JS, URL encoding in URLs. This is the primary defense."
+   },
+   {
+    "name": "Content-Security-Policy (CSP)",
+    "desc": "Response header that restricts which scripts the browser can execute. script-src 'self' blocks all inline scripts — even injected ones. Defense-in-depth layer."
+   },
+   {
+    "name": "HttpOnly cookies",
+    "desc": "Browser prevents JavaScript from accessing cookies marked HttpOnly via document.cookie. Attacker can't exfiltrate session tokens directly (but can still make requests as the user)."
+   },
+   {
+    "name": "X-Content-Type-Options: nosniff",
+    "desc": "Prevents browser from MIME-sniffing a response as executable. Stops an attacker from uploading a .jpg that's actually JS and getting it executed."
+   }
+  ],
+  "gotcha": "XSS can defeat CSRF protections. If you have XSS on the target origin, you can read the anti-CSRF token from the page (you're same-origin), include it in your forged request, and bypass the CSRF defense completely. This is why XSS is treated as higher severity than CSRF."
+ },
+ {
+  "n": 9,
+  "title": "SSRF (server-side request forgery)",
+  "sub": "Attacker makes the SERVER send requests to internal resources",
+  "concept": "App takes a URL as input (image import, webhook, PDF generator). Attacker provides an internal URL. The server — which sits inside the network — fetches it and returns the result. Attacker reaches internal services they can't access from outside.",
+  "attacks": [
+   {
+    "name": "Cloud metadata theft",
+    "desc": "http://169.254.169.254/latest/meta-data/ — AWS metadata endpoint returns IAM credentials. This is how the Capital One breach happened. GCP and Azure have similar endpoints."
+   },
+   {
+    "name": "Internal service scanning",
+    "desc": "Attacker probes internal IPs and ports through the vulnerable server, discovering services and their responses. The server becomes an internal proxy."
+   },
+   {
+    "name": "Bypassing access controls",
+    "desc": "Internal admin panels, databases, or APIs that are firewalled from the internet but accessible from the server's network."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Input validation / URL allowlisting",
+    "desc": "Only allow specific domains/protocols. Block private IP ranges (10.x, 172.16.x, 192.168.x), localhost, and 169.254.169.254."
+   },
+   {
+    "name": "IMDSv2 (AWS)",
+    "desc": "Requires a PUT request to get a token before accessing metadata. Basic SSRF (following redirects) can't complete the two-step flow."
+   },
+   {
+    "name": "Network segmentation",
+    "desc": "The server making outbound requests should have minimal network access — principle of least privilege at the network level."
+   }
+  ],
+  "gotcha": "Attackers bypass IP blocklists using: decimal IP (2130706433 = 127.0.0.1), IPv6 (::1), DNS rebinding (domain resolves to internal IP), redirects (allowed URL redirects to internal URL). SSRF filters must resolve the hostname and check the final destination IP, not just the input string."
+ },
+ {
+  "n": 10,
+  "title": "Cookie security",
+  "sub": "Session management via Set-Cookie attributes",
+  "concept": "Cookies carry session state. Every attribute on Set-Cookie is a security control: <b>Secure</b> = only send over HTTPS. <b>HttpOnly</b> = JS can't read it. <b>SameSite</b> = controls cross-site sending. <b>Path/Domain</b> = scoping. <b>Max-Age/Expires</b> = lifetime.",
+  "attacks": [
+   {
+    "name": "Session hijacking (cookie theft)",
+    "desc": "Via XSS (read document.cookie), network sniffing (no Secure flag), or malware. Attacker replays the cookie and impersonates the victim."
+   },
+   {
+    "name": "Session fixation",
+    "desc": "Attacker sets a known session ID in the victim's browser (via URL param or subdomain cookie). Victim logs in — now the attacker knows the authenticated session ID."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Secure + HttpOnly + SameSite=Lax",
+    "desc": "The baseline for any session cookie. Covers transport (HTTPS only), script access (blocked), and cross-site sending (restricted)."
+   },
+   {
+    "name": "Regenerate session on login",
+    "desc": "Issue a new session ID after authentication. Defeats session fixation — the pre-auth ID the attacker knows is now useless."
+   },
+   {
+    "name": "Short expiration + idle timeout",
+    "desc": "Limit the window of opportunity if a session is compromised."
+   }
+  ],
+  "gotcha": "A cookie with Domain=.example.com is sent to ALL subdomains (payments.example.com, evil.example.com). If any subdomain is compromised, it can read and set cookies for the parent domain. This is why cookie scoping matters — and why subdomain takeover is a real attack vector."
+ },
+ {
+  "n": 11,
+  "title": "Bonus: security headers cheat sheet",
+  "sub": "Headers you'd recommend in a secure code review",
+  "concept": "These are the headers an AppSec engineer checks for in every response.",
+  "attacks": [
+   {
+    "name": "Missing headers = expanded attack surface",
+    "desc": "Each missing header is an opportunity the attacker exploits: no CSP → XSS runs freely, no X-Frame-Options → clickjacking, no HSTS → SSL stripping."
+   }
+  ],
+  "defenses": [
+   {
+    "name": "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload",
+    "desc": "HSTS — enforce HTTPS."
+   },
+   {
+    "name": "Content-Security-Policy: default-src 'self'; script-src 'self'",
+    "desc": "CSP — restrict script sources. Mitigates XSS."
+   },
+   {
+    "name": "X-Content-Type-Options: nosniff",
+    "desc": "Prevents MIME-type sniffing. Stops JS-disguised-as-image attacks."
+   },
+   {
+    "name": "X-Frame-Options: DENY (or SAMEORIGIN)",
+    "desc": "Prevents your page from being embedded in an iframe. Blocks clickjacking."
+   },
+   {
+    "name": "Referrer-Policy: strict-origin-when-cross-origin",
+    "desc": "Controls how much URL info is sent in the Referer header. Prevents leaking sensitive paths to third parties."
+   },
+   {
+    "name": "Permissions-Policy: geolocation=(), camera=()",
+    "desc": "Restricts which browser features (camera, mic, geolocation) the page can use."
+   },
+   {
+    "name": "Cache-Control: no-store",
+    "desc": "For sensitive pages (account, PII). Prevents browser and proxies from caching the response."
+   }
+  ],
+  "gotcha": "If you can only ship one of these, ship CSP. HSTS, nosniff, X-Frame-Options and Referrer-Policy are cheap hygiene; CSP is the one that directly blunts XSS, still the most common web bug class. Prioritise it, then fill in the rest."
+ }
+]

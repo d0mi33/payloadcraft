@@ -1,5 +1,6 @@
 ---
 title: about
+draft: true   # hidden for launch — not in the nav yet
 ---
 <!-- Edit everything below. Add your handle(s) and remove the placeholder brackets. -->
 

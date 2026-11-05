@@ -1,0 +1,1607 @@
+{
+ "categories": [
+  {
+   "category": "Identity & Access",
+   "id": "iam",
+   "services": [
+    {
+     "name": "AWS IAM",
+     "oneliner": "Who can do what — users, roles, policies, and permissions",
+     "tags": [
+      "Least Privilege",
+      "Threat Modeling",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Manages authentication (who are you) and authorization (what can you do) for all AWS resources",
+        "Supports users, groups, roles, and policies — policies are JSON documents specifying Allow/Deny on actions and resources",
+        "IAM roles provide temporary credentials via AWS STS — no long-lived keys needed",
+        "IAM Access Analyzer identifies resources shared externally and validates policies for least privilege"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"I'd enforce least privilege by scoping IAM policies to specific resources and actions, never using Action: *, and reviewing with IAM Access Analyzer\"",
+        "\"For cross-account access, I'd use IAM roles with AssumeRole instead of sharing credentials\"",
+        "\"In a CI/CD pipeline, the build agent runs under an IAM role with only the permissions needed for that stage — deploy role can't read production data\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you enforce least privilege in AWS?",
+         "a": "Start with zero permissions. Use IAM policies scoped to exact resources (ARN-level). Use IAM Access Analyzer to find overly permissive policies. Use Service Control Policies (SCPs) in AWS Organizations as guardrails. Regularly review with credential reports and last-accessed data."
+        },
+        {
+         "q": "What's the difference between IAM users and IAM roles?",
+         "a": "Users have long-lived credentials (password, access keys). Roles provide temporary credentials via STS and are assumed by services, EC2 instances, Lambda functions, or cross-account users. For AppSec: always prefer roles over users for machine-to-machine access."
+        }
+       ]
+      }
+     ],
+     "short": "IAM",
+     "slug": "iam",
+     "layer": "foundation",
+     "order": 36
+    },
+    {
+     "name": "AWS IAM Identity Center (SSO)",
+     "oneliner": "Centralized SSO for multi-account AWS access",
+     "tags": [
+      "AuthN",
+      "Federation"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Single sign-on for multiple AWS accounts and business applications",
+        "Integrates with external identity providers (Okta, Azure AD, etc.) via SAML 2.0 / OIDC",
+        "Central place to manage who has access to what across all accounts",
+        "Replaces per-account IAM users with federated, centrally managed access"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For a multi-account org, I'd set up IAM Identity Center for centralized access management, so we're not managing IAM users in every account\"",
+        "\"This eliminates long-lived credentials and gives us one place to revoke access when someone leaves\""
+       ]
+      }
+     ],
+     "short": "IAM Identity Center",
+     "slug": "iam-identity-center",
+     "layer": "frontdoor",
+     "order": 12
+    },
+    {
+     "name": "Amazon Cognito",
+     "oneliner": "User authentication and identity for web/mobile apps",
+     "tags": [
+      "AuthN",
+      "OAuth",
+      "API Security"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "User Pools: managed user directory with sign-up, sign-in, MFA, password policies",
+        "Identity Pools: exchange tokens for temporary AWS credentials (federated access)",
+        "Issues JWT tokens: ID token (who the user is), Access token (what they can do), Refresh token",
+        "Supports OAuth 2.0 / OIDC flows, social login (Google, Facebook, Apple), SAML federation"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For application-level auth, I'd use Cognito User Pools to handle registration, login, and MFA — we're not building auth from scratch\"",
+        "\"The ID token goes to the frontend to show who's logged in; the Access token goes to the backend API via the Authorization header\"",
+        "\"I'd pair Cognito with API Gateway using a Cognito Authorizer so every API call is authenticated automatically\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How would you secure a public-facing API?",
+         "a": "Cognito User Pool for authentication → issues JWTs. API Gateway with Cognito Authorizer validates the JWT on every request. Use scopes in the Access token for authorization. Rate limiting at API Gateway level. WAF in front for injection/bot protection."
+        },
+        {
+         "q": "What's the difference between ID tokens and Access tokens?",
+         "a": "ID token contains user identity claims (email, name, sub). Access token contains scopes and permissions. Never use the ID token for API authorization — use the Access token. Both are JWTs signed by Cognito, validated by checking the signature against Cognito's JWKS endpoint."
+        }
+       ]
+      }
+     ],
+     "short": "Cognito",
+     "slug": "cognito",
+     "layer": "frontdoor",
+     "order": 11
+    },
+    {
+     "name": "AWS STS (Security Token Service)",
+     "oneliner": "Issues temporary, limited-privilege credentials",
+     "tags": [
+      "Credentials",
+      "Least Privilege"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Issues temporary security credentials (access key, secret key, session token) that auto-expire",
+        "Powers AssumeRole, cross-account access, and federated user access",
+        "Credentials last 15 minutes to 36 hours depending on use case"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Rather than embedding long-lived access keys, the service AssumeRoles via STS to get temporary credentials that rotate automatically\"",
+        "\"For a threat model, hardcoded credentials are mitigated by moving to STS-based temporary credentials with automatic expiry\""
+       ]
+      }
+     ],
+     "short": "STS",
+     "slug": "sts",
+     "layer": "foundation",
+     "order": 37
+    },
+    {
+     "name": "AWS Verified Permissions",
+     "oneliner": "Fine-grained authorization using Cedar policy language",
+     "tags": [
+      "AuthZ",
+      "Zero Trust"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Centralized authorization engine using Cedar — a purpose-built policy language",
+        "Decouples authorization logic from application code",
+        "Supports RBAC and ABAC models with policy validation and testing",
+        "Integrates with Cognito for identity context"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For complex authorization (multi-tenant, resource-level permissions), I'd use Verified Permissions with Cedar policies rather than baking auth logic into every microservice\"",
+        "\"This gives us auditable, testable, centrally managed authorization that security can review without reading application code\""
+       ]
+      }
+     ],
+     "short": "Verified Permissions",
+     "slug": "verified-permissions",
+     "layer": "frontdoor",
+     "order": 13
+    }
+   ]
+  },
+  {
+   "category": "Data Protection & Encryption",
+   "id": "data",
+   "services": [
+    {
+     "name": "AWS KMS (Key Management Service)",
+     "oneliner": "Create, manage, and control encryption keys",
+     "tags": [
+      "Encryption",
+      "Compliance",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Centralized key management — create, rotate, and control access to encryption keys",
+        "Customer Managed Keys (CMKs) vs AWS Managed Keys: CMKs give you control over key policies and rotation",
+        "Envelope encryption: KMS encrypts a data key, you use the data key to encrypt your data — efficient for large data",
+        "Integrates with nearly every AWS service: S3, EBS, RDS, Lambda, SQS, etc.",
+        "CloudHSM-backed keys available for FIPS 140-2 Level 3 compliance"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"All data at rest is encrypted using KMS CMKs with key policies that restrict which IAM roles can use the key — separation of duties between key admin and key user\"",
+        "\"For the SDLC, the CI/CD pipeline encrypts build artifacts with KMS before storing in S3, and the deploy role has decrypt permissions only for that key\"",
+        "\"In a threat model for data exfiltration: even if an attacker gets the encrypted data, they can't decrypt without KMS Decrypt permission on the specific key\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you handle encryption at rest?",
+         "a": "KMS with CMKs. Enforce encryption via S3 bucket policies (deny PutObject without SSE), RDS encryption enabled at creation, EBS volume encryption as default. Key policies follow least privilege — separate key administrators from key users."
+        }
+       ]
+      }
+     ],
+     "short": "KMS",
+     "slug": "kms",
+     "layer": "data",
+     "order": 18
+    },
+    {
+     "name": "AWS Secrets Manager",
+     "oneliner": "Store, rotate, and retrieve secrets — no hardcoding",
+     "tags": [
+      "Credentials",
+      "SDLC",
+      "Threat Modeling"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Stores database credentials, API keys, tokens, and other secrets",
+        "Automatic rotation using Lambda functions — e.g., rotate RDS passwords every 30 days with zero downtime",
+        "Secrets encrypted with KMS, access controlled via IAM policies",
+        "Applications retrieve secrets via API at runtime — secrets never touch code or config files"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"The #1 thing I'd check in a code review: are there hardcoded credentials? The fix is Secrets Manager — app calls GetSecretValue at runtime\"",
+        "\"In the SDLC, we block commits containing secrets with pre-commit hooks (git-secrets) and scan for them in CI with tools like Trufflehog\"",
+        "\"For rotation, Secrets Manager can automatically rotate RDS credentials using a Lambda rotation function — no human touching passwords\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "You find hardcoded database credentials in code. What do you do?",
+         "a": "Immediate: rotate the exposed credential. Move to Secrets Manager with automatic rotation. Add pre-commit hooks (git-secrets, detect-secrets) to prevent future leaks. Add CI scanning (Trufflehog, gitleaks). Check CloudTrail for unauthorized use of the exposed credential."
+        }
+       ]
+      }
+     ],
+     "short": "Secrets Manager",
+     "slug": "secrets-manager",
+     "layer": "data",
+     "order": 19
+    },
+    {
+     "name": "AWS Certificate Manager (ACM)",
+     "oneliner": "Provision and manage TLS/SSL certificates for free",
+     "tags": [
+      "Encryption",
+      "Transport Security"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Free public TLS certificates for AWS services (ALB, CloudFront, API Gateway)",
+        "Automatic renewal — no manual cert management",
+        "Private CA for internal services (ACM Private CA)"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For encryption in transit, all external endpoints use ACM-managed TLS certs on the ALB, and internal service-to-service communication uses private CA certs for mutual TLS\""
+       ]
+      }
+     ],
+     "short": "Certificate Manager",
+     "slug": "certificate-manager",
+     "layer": "edge",
+     "order": 4
+    },
+    {
+     "name": "Amazon Macie",
+     "oneliner": "ML-powered sensitive data discovery in S3",
+     "tags": [
+      "Data Security",
+      "Compliance",
+      "PII"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Scans S3 buckets for sensitive data: PII, PHI, financial data, credentials",
+        "ML-based classification — finds patterns beyond regex (names, addresses, custom data types)",
+        "Alerts on publicly accessible or unencrypted buckets containing sensitive data",
+        "Integrates with Security Hub for centralized finding management"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"In the design review, I'd ask: what sensitive data does this system handle, and where does it land in S3? Macie continuously scans for PII/PHI leaks and alerts if sensitive data appears in an unprotected bucket\"",
+        "\"For compliance (GDPR, HIPAA), Macie provides automated sensitive data inventory across all S3 storage\""
+       ]
+      }
+     ],
+     "short": "Macie",
+     "slug": "macie",
+     "layer": "data",
+     "order": 20
+    },
+    {
+     "name": "AWS CloudHSM",
+     "oneliner": "Dedicated hardware security modules for crypto operations",
+     "tags": [
+      "Encryption",
+      "Compliance"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Single-tenant HSM instances for cryptographic operations",
+        "FIPS 140-2 Level 3 validated — higher assurance than KMS standard",
+        "You control the keys; AWS cannot access them",
+        "Use cases: TLS offloading, Oracle TDE, custom PKI, signing"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"If the compliance requirement mandates FIPS 140-2 Level 3 or the org needs full key control with no AWS access, we use CloudHSM-backed KMS keys or CloudHSM directly\""
+       ]
+      }
+     ],
+     "short": "CloudHSM",
+     "slug": "cloudhsm",
+     "layer": "data",
+     "order": 21
+    }
+   ]
+  },
+  {
+   "category": "Network Security",
+   "id": "network",
+   "services": [
+    {
+     "name": "Amazon VPC (Virtual Private Cloud)",
+     "oneliner": "Isolated network — subnets, routing, and segmentation",
+     "tags": [
+      "Network",
+      "Threat Modeling",
+      "Isolation"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Logically isolated section of AWS — your own private network",
+        "Public subnets (internet-facing) and private subnets (internal only)",
+        "Route tables control traffic flow between subnets and to the internet",
+        "VPC Endpoints let resources access AWS services without traversing the internet",
+        "VPC Flow Logs capture all network traffic metadata for analysis"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"In the architecture, databases and backend services live in private subnets with no internet gateway. Only the ALB sits in public subnets\"",
+        "\"VPC Endpoints for S3 and DynamoDB keep data traffic off the public internet — reduces data exfiltration risk\"",
+        "\"VPC Flow Logs feed into GuardDuty for anomaly detection and into CloudWatch for alerting on unexpected traffic patterns\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How would you design a secure network architecture?",
+         "a": "Multi-tier VPC: public subnets for ALBs only, private subnets for app/compute, isolated subnets for databases. Security Groups as instance-level firewalls (stateful, allow-only). NACLs as subnet-level backup (stateless, allow+deny). VPC Endpoints for AWS service access. VPC Flow Logs for monitoring. No direct SSH — use SSM Session Manager."
+        }
+       ]
+      }
+     ],
+     "short": "VPC",
+     "slug": "vpc",
+     "layer": "network",
+     "order": 6
+    },
+    {
+     "name": "Security Groups & NACLs",
+     "oneliner": "Instance-level and subnet-level firewalls",
+     "tags": [
+      "Network",
+      "Least Privilege"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Security Groups: stateful, instance-level, allow rules only — attached to ENIs",
+        "NACLs: stateless, subnet-level, allow AND deny rules — evaluated in order",
+        "Security Groups reference other Security Groups (e.g., 'allow traffic from the ALB SG') — no IP management"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Security groups are the primary network control — I'd scope each to its tier: ALB SG allows 443 from anywhere, App SG allows traffic only from ALB SG, DB SG allows 3306 only from App SG\"",
+        "\"NACLs provide defense in depth at the subnet level — useful for blocking known malicious IPs\""
+       ]
+      }
+     ],
+     "short": "Security Groups & NACLs",
+     "slug": "security-groups-nacls",
+     "layer": "network",
+     "order": 7
+    },
+    {
+     "name": "AWS WAF (Web Application Firewall)",
+     "oneliner": "Filter HTTP traffic with custom and managed rules",
+     "tags": [
+      "OWASP",
+      "API Security",
+      "Threat Modeling"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Inspects HTTP/HTTPS requests to CloudFront, ALB, API Gateway, AppSync",
+        "Managed rule groups: OWASP Top 10 (SQLi, XSS), known bad inputs, bot control, IP reputation",
+        "Custom rules: rate limiting, geo-blocking, header inspection, regex pattern matching",
+        "Logging to S3/CloudWatch for security analysis; real-time metrics"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"WAF sits in front of the ALB with AWS Managed Rules for the OWASP core set — SQLi, XSS, path traversal. Custom rate-limit rules prevent brute force on login endpoints\"",
+        "\"For an API threat model, WAF validates request size, blocks known malicious patterns, and rate-limits per IP to prevent abuse\"",
+        "\"WAF is defense-in-depth — it catches common attacks at the edge, but the application still validates and sanitizes input internally\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you protect against OWASP Top 10 in AWS?",
+         "a": "Layered: WAF managed rules for SQLi/XSS/SSRF/path traversal at the edge. Input validation and parameterized queries in application code. Cognito + API Gateway for broken auth. S3 bucket policies and IAM for access control misconfigurations. Secrets Manager for credential management. CloudTrail for logging failures. Inspector for dependency vulnerabilities."
+        }
+       ]
+      }
+     ],
+     "short": "WAF",
+     "slug": "waf",
+     "layer": "edge",
+     "order": 2
+    },
+    {
+     "name": "AWS Shield",
+     "oneliner": "DDoS protection — Standard (free) and Advanced (managed)",
+     "tags": [
+      "DDoS",
+      "Availability"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Shield Standard: automatic, free DDoS protection for all AWS resources (L3/L4 attacks)",
+        "Shield Advanced: managed DDoS response team (DRT), cost protection during attacks, enhanced detection for L7 attacks",
+        "Advanced integrates with WAF — DRT can create/update WAF rules during an attack",
+        "Advanced provides real-time visibility into attacks via CloudWatch"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For availability in the threat model, Shield Standard is automatic. If the app is high-profile or revenue-critical, Shield Advanced adds the DDoS Response Team who can intervene in real-time\"",
+        "\"Shield + WAF together: Shield handles volumetric L3/L4 attacks, WAF handles application-layer L7 attacks like HTTP floods\""
+       ]
+      }
+     ],
+     "short": "Shield",
+     "slug": "shield",
+     "layer": "edge",
+     "order": 3
+    },
+    {
+     "name": "AWS Firewall Manager",
+     "oneliner": "Centrally manage WAF, Shield, Security Group rules across accounts",
+     "tags": [
+      "Governance",
+      "Multi-Account"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Centralized rule management across AWS Organizations accounts",
+        "Auto-apply WAF rules to new resources as they're created",
+        "Manage Security Group policies, Shield Advanced protections, and Network Firewall rules from one place"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"In a multi-account environment, Firewall Manager ensures baseline WAF rules are applied to every ALB and CloudFront distribution automatically — no team can skip them\""
+       ]
+      }
+     ],
+     "short": "Firewall Manager",
+     "slug": "firewall-manager",
+     "layer": "edge",
+     "order": 5
+    },
+    {
+     "name": "AWS Network Firewall",
+     "oneliner": "Stateful network firewall for VPC traffic inspection",
+     "tags": [
+      "Network",
+      "IDS/IPS"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Stateful inspection, intrusion detection/prevention (IDS/IPS) for VPC traffic",
+        "Deep packet inspection with Suricata-compatible rules",
+        "TLS inspection for encrypted traffic (with ACM Private CA certs)",
+        "Centralized across VPCs via Transit Gateway"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For east-west traffic inspection between microservices, Network Firewall provides IDS/IPS capabilities with Suricata rules — catches lateral movement attempts\""
+       ]
+      }
+     ],
+     "short": "Network Firewall",
+     "slug": "network-firewall",
+     "layer": "network",
+     "order": 8
+    },
+    {
+     "name": "AWS PrivateLink",
+     "oneliner": "Private connectivity to services without internet exposure",
+     "tags": [
+      "Network",
+      "Zero Trust"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Expose services to other VPCs/accounts over private AWS network — no internet, no VPC peering needed",
+        "Creates an ENI in the consumer's VPC — traffic stays on AWS backbone",
+        "Use for SaaS integrations, internal microservices, partner connections"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"The microservice communicates via PrivateLink — traffic never touches the internet, reducing the attack surface for data exfiltration and MITM\""
+       ]
+      }
+     ],
+     "short": "PrivateLink",
+     "slug": "privatelink",
+     "layer": "network",
+     "order": 9
+    }
+   ]
+  },
+  {
+   "category": "Detection & Monitoring",
+   "id": "detect",
+   "services": [
+    {
+     "name": "Amazon GuardDuty",
+     "oneliner": "ML-based threat detection — continuous, managed",
+     "tags": [
+      "Threat Detection",
+      "Incident Response",
+      "ML"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Continuously analyzes: CloudTrail events, VPC Flow Logs, DNS logs, S3 data events, EKS audit logs, Lambda network activity, RDS login events",
+        "Detects: compromised EC2 (crypto mining, C2 communication), compromised credentials (impossible travel, unusual API calls), data exfiltration, privilege escalation",
+        "Machine learning baselines normal behavior, then alerts on anomalies",
+        "Findings categorized by severity (Low/Medium/High) with recommended remediation"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"GuardDuty is the always-on threat detection layer — it caught the anomaly because it saw API calls from an unusual geo at 3am, which didn't match the baseline\"",
+        "\"In an incident response scenario, GuardDuty findings are the first alert. I'd correlate with CloudTrail logs, investigate with Detective, and remediate using EventBridge-triggered Lambda automation\"",
+        "\"For a threat model, GuardDuty covers the 'detect' phase — if an attacker compromises credentials and starts recon API calls, GuardDuty flags the unusual pattern\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How would you detect compromised credentials in AWS?",
+         "a": "GuardDuty detects: API calls from unusual IPs/geos, impossible travel, credential usage from known malicious IPs. CloudTrail shows the exact API calls made. EventBridge triggers automated response (disable access key, isolate instance, notify security team via SNS)."
+        }
+       ]
+      }
+     ],
+     "short": "GuardDuty",
+     "slug": "guardduty",
+     "layer": "detect",
+     "order": 29
+    },
+    {
+     "name": "AWS CloudTrail",
+     "oneliner": "Logs every API call — who did what, when, from where",
+     "tags": [
+      "Audit",
+      "Incident Response",
+      "Compliance"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Records every AWS API call: management events (CreateBucket, RunInstances) and data events (GetObject, Invoke)",
+        "Logs include: identity (who), action (what), resource (which), source IP, timestamp",
+        "Organization-wide trail for multi-account logging in a centralized S3 bucket",
+        "Immutable logs when using CloudTrail Lake or S3 Object Lock",
+        "Query with Athena for investigations, stream to CloudWatch for real-time alerts"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"CloudTrail is the forensic foundation — during an incident, I query Athena to find every API call that compromised principal made in the last 72 hours\"",
+        "\"For compliance, organization-wide CloudTrail ensures no account can disable logging, and logs go to a locked-down central bucket with S3 Object Lock\"",
+        "\"In a code review, if I see the app making unusual AWS API calls, CloudTrail verifies what actually happened versus what the code intended\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "Walk me through an incident response in AWS",
+         "a": "1) GuardDuty alert → 2) CloudTrail to identify scope: what did the attacker access? 3) Contain: IAM policy to deny-all for compromised identity, isolate EC2 via Security Group 4) Investigate: Detective for visual timeline, Athena queries on CloudTrail 5) Eradicate: rotate credentials, patch vulnerability 6) Recover: restore from known-good state 7) Post-mortem: update detection rules."
+        }
+       ]
+      }
+     ],
+     "short": "CloudTrail",
+     "slug": "cloudtrail",
+     "layer": "detect",
+     "order": 27
+    },
+    {
+     "name": "AWS Security Hub",
+     "oneliner": "Centralized security dashboard — aggregates all findings",
+     "tags": [
+      "Governance",
+      "Compliance",
+      "CSPM"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Aggregates findings from: GuardDuty, Inspector, Macie, Firewall Manager, IAM Access Analyzer, partner tools",
+        "Automated compliance checks: CIS AWS Foundations Benchmark, PCI-DSS, AWS Foundational Security Best Practices, NIST",
+        "Normalized finding format (ASFF) — consistent across all sources",
+        "Custom actions and automated remediation via EventBridge"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Security Hub is the single pane of glass — all security findings from every service and account roll up here with a compliance score\"",
+        "\"In the SDLC, Security Hub receives findings from Inspector (vulnerability scanning) and custom integrations from our SAST/DAST tools in the CI pipeline\"",
+        "\"I'd set up automated remediation: Security Hub finding → EventBridge → Lambda → fix (e.g., S3 bucket made public → auto-enable Block Public Access)\""
+       ]
+      }
+     ],
+     "short": "Security Hub",
+     "slug": "security-hub",
+     "layer": "detect",
+     "order": 32
+    },
+    {
+     "name": "Amazon Detective",
+     "oneliner": "Investigate and visualize security findings — root cause analysis",
+     "tags": [
+      "Incident Response",
+      "Forensics"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Automatically ingests and correlates: CloudTrail, VPC Flow Logs, GuardDuty findings, EKS audit logs",
+        "Creates behavior graphs that link entities (IP addresses, IAM principals, EC2 instances)",
+        "Visualizes: who talked to whom, what resources were accessed, timeline of activity",
+        "No log infrastructure to manage — integrates directly with GuardDuty findings"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"After GuardDuty raises a high-severity finding, I pivot to Detective — it shows me the full blast radius: every resource that principal touched, every IP it connected to, visualized on a timeline\""
+       ]
+      }
+     ],
+     "short": "Detective",
+     "slug": "detective",
+     "layer": "detect",
+     "order": 33
+    },
+    {
+     "name": "Amazon CloudWatch",
+     "oneliner": "Monitoring, logging, and alerting for all AWS resources",
+     "tags": [
+      "Monitoring",
+      "Alerting"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "CloudWatch Metrics: CPU, memory, network, custom application metrics",
+        "CloudWatch Logs: centralized log aggregation, metric filters, log insights queries",
+        "CloudWatch Alarms: trigger SNS/Lambda when thresholds are breached",
+        "CloudWatch Logs Insights: SQL-like queries across log groups"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"I'd create CloudWatch metric filters for security-relevant events: failed logins, 4xx/5xx spikes, unusual API call patterns — with alarms that notify the security on-call\"",
+        "\"Application logs stream to CloudWatch Logs, and we use Logs Insights to query for patterns during incident investigation\""
+       ]
+      }
+     ],
+     "short": "CloudWatch",
+     "slug": "cloudwatch",
+     "layer": "detect",
+     "order": 28
+    },
+    {
+     "name": "Amazon EventBridge",
+     "oneliner": "Event-driven automation — respond to security events in real time",
+     "tags": [
+      "Automation",
+      "Incident Response"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Event bus for AWS service events and custom application events",
+        "Rules match event patterns and route to targets: Lambda, SNS, SQS, Step Functions",
+        "Security use: automated incident response, compliance enforcement, real-time remediation"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"EventBridge is the glue for automated security response: GuardDuty finding → EventBridge rule → Lambda function that isolates the compromised instance by changing its Security Group\"",
+        "\"For compliance, when Config detects a non-compliant resource, EventBridge triggers a Lambda that auto-remediates (re-enable encryption, block public access)\""
+       ]
+      }
+     ],
+     "short": "EventBridge",
+     "slug": "eventbridge",
+     "layer": "detect",
+     "order": 34
+    },
+    {
+     "name": "Amazon Security Lake",
+     "oneliner": "Centralized security data lake in OCSF format",
+     "tags": [
+      "SIEM",
+      "Data Lake"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Aggregates security data from AWS services, third-party tools, and custom sources",
+        "Normalizes to OCSF (Open Cybersecurity Schema Framework) format",
+        "Stores in S3 with automatic lifecycle management",
+        "Feeds SIEM tools (Splunk, Datadog, etc.) with normalized data"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For a mature security program, Security Lake centralizes all security logs in OCSF format — CloudTrail, VPC Flow Logs, Route53 DNS, GuardDuty, and third-party tools — for correlation and long-term analysis\""
+       ]
+      }
+     ],
+     "short": "Security Lake",
+     "slug": "security-lake",
+     "layer": "detect",
+     "order": 35
+    }
+   ]
+  },
+  {
+   "category": "Vulnerability & Configuration Management",
+   "id": "vuln",
+   "services": [
+    {
+     "name": "Amazon Inspector",
+     "oneliner": "Automated vulnerability scanning for EC2, containers, Lambda",
+     "tags": [
+      "Vulnerability",
+      "SDLC",
+      "CVE"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Continuous, automated vulnerability scanning — no agents needed for most",
+        "Scans EC2 instances (OS and package vulnerabilities), ECR container images (before and after deployment), Lambda functions (code dependencies)",
+        "Correlates against CVE database, assigns risk scores using Amazon's own scoring plus CVSS",
+        "Findings go to Security Hub for centralized tracking"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"In the CI/CD pipeline, Inspector scans container images in ECR before they deploy — a critical CVE blocks the deployment\"",
+        "\"Inspector continuously scans running EC2 instances, so when a new CVE drops, affected instances surface within hours without manual scans\"",
+        "\"For Lambda, Inspector scans the deployment package's dependencies — catches vulnerable npm/pip packages\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you handle vulnerability management in AWS?",
+         "a": "Inspector for continuous scanning (EC2 + containers + Lambda). Findings aggregated in Security Hub. Prioritize by Inspector's risk score + business context. Patch via Systems Manager Patch Manager for EC2. Rebuild and redeploy containers with updated base images. Track SLAs: critical = 24hr, high = 7 days."
+        }
+       ]
+      }
+     ],
+     "short": "Inspector",
+     "slug": "inspector",
+     "layer": "compute",
+     "order": 17
+    },
+    {
+     "name": "AWS Config",
+     "oneliner": "Track resource configuration and enforce compliance rules",
+     "tags": [
+      "Compliance",
+      "Governance",
+      "Drift"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Records every configuration change to AWS resources (who changed what, when)",
+        "Config Rules: evaluate if resources are compliant (e.g., 'all S3 buckets must be encrypted', 'all Security Groups must not allow 0.0.0.0/0 on port 22')",
+        "Conformance Packs: pre-built sets of Config Rules for compliance frameworks (PCI, HIPAA)",
+        "Auto-remediation via Systems Manager Automation or Lambda"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Config is continuous compliance — it doesn't just scan once, it evaluates every configuration change in real time and can auto-remediate\"",
+        "\"In a threat model, Config detects drift: if someone opens a Security Group to 0.0.0.0/0, the Config rule fires, EventBridge picks it up, and Lambda reverts the change\""
+       ]
+      }
+     ],
+     "short": "Config",
+     "slug": "config",
+     "layer": "detect",
+     "order": 31
+    },
+    {
+     "name": "AWS Systems Manager (SSM)",
+     "oneliner": "Secure management of EC2 — no SSH, automated patching",
+     "tags": [
+      "Patch Mgmt",
+      "Access"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Session Manager: shell access to EC2 without SSH keys, bastion hosts, or open inbound ports",
+        "Patch Manager: automated, scheduled OS patching across fleets",
+        "Parameter Store: configuration data and non-rotating secrets (use Secrets Manager for rotating secrets)",
+        "Run Command: execute scripts across instances without SSH"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"No SSH to production — all access via SSM Session Manager, which logs every command to CloudTrail and S3. No port 22 open, no SSH key management\"",
+        "\"Patch Manager runs on a maintenance window: scan → approve → apply → verify, all automated and tracked\""
+       ]
+      }
+     ],
+     "short": "Systems Manager",
+     "slug": "systems-manager",
+     "layer": "compute",
+     "order": 16
+    }
+   ]
+  },
+  {
+   "category": "Application & API Security",
+   "id": "appsec",
+   "services": [
+    {
+     "name": "Amazon API Gateway",
+     "oneliner": "Managed API endpoints with auth, throttling, and validation",
+     "tags": [
+      "API Security",
+      "AuthZ",
+      "Throttling"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Managed REST, HTTP, and WebSocket APIs",
+        "Authentication: Cognito Authorizer (JWT validation), Lambda Authorizer (custom auth logic), IAM auth",
+        "Request validation: body, query parameters, headers — rejects malformed requests before they hit your backend",
+        "Throttling: per-method, per-client rate limits and burst limits",
+        "Usage plans and API keys for client-level access control",
+        "Mutual TLS (mTLS) for service-to-service authentication"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"API Gateway is the entry point — it handles authN (Cognito authorizer validates the JWT), request validation (rejects bad input before it reaches Lambda), and rate limiting (prevents abuse and DoS)\"",
+        "\"For a B2B API, I'd use mutual TLS with API Gateway so both sides verify identity with certificates\"",
+        "\"Lambda authorizer for complex auth: check JWT + look up the user's tenant, verify their subscription tier, and return an IAM policy that scopes access to just their tenant's resources\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you prevent API abuse?",
+         "a": "API Gateway throttling (per-method rate limits). WAF in front for injection/bot protection. Cognito/Lambda Authorizer for authentication. Usage plans + API keys for client identification. CloudWatch alarms on 4xx/5xx spikes. Custom Lambda authorizer to enforce tenant-level rate limits."
+        }
+       ]
+      }
+     ],
+     "short": "API Gateway",
+     "slug": "api-gateway",
+     "layer": "frontdoor",
+     "order": 10
+    },
+    {
+     "name": "AWS Lambda (Security Aspects)",
+     "oneliner": "Serverless compute — less infra to secure, new risks to manage",
+     "tags": [
+      "Serverless",
+      "Least Privilege",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Run code without managing servers — AWS handles OS, runtime, patching",
+        "Each function gets its own IAM execution role (least privilege per function)",
+        "Environment variables for config (encrypt sensitive values with KMS)",
+        "VPC integration for accessing private resources",
+        "Concurrency limits prevent runaway costs and resource exhaustion"
+       ]
+      },
+      {
+       "heading": "Shared Responsibility for Lambda",
+       "items": [
+        "AWS manages: physical infra, hypervisor, OS, runtime patches, network isolation",
+        "You manage: function code, IAM execution role, input validation, dependency security, environment variable encryption, VPC config"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Lambda shifts the responsibility model — no OS to patch, but I still own the code, the IAM role, and the dependencies\"",
+        "\"Each Lambda function has its own least-privilege IAM role — the auth function can only read from the users table, the payment function can only write to the orders table\"",
+        "\"For input validation in Lambda, I validate and sanitize event inputs at the top of the handler — don't trust API Gateway validation alone, defense in depth\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "What's different about securing serverless applications?",
+         "a": "You lose: OS-level controls, network firewalls on the host, traditional security agents. You gain: no server patching, per-invocation isolation, managed scaling. You still own: IAM roles (least privilege per function), input validation, dependency scanning (Inspector), secrets management (Secrets Manager), logging (CloudWatch), and the code itself."
+        }
+       ]
+      }
+     ],
+     "short": "Lambda",
+     "slug": "lambda",
+     "layer": "compute",
+     "order": 14
+    },
+    {
+     "name": "Amazon CloudFront",
+     "oneliner": "CDN with security features — edge protection and caching",
+     "tags": [
+      "Edge Security",
+      "DDoS"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Content delivery network — caches and serves content from edge locations",
+        "Integrates with WAF (filtering at the edge before traffic reaches origin)",
+        "Integrates with Shield (DDoS protection at the edge)",
+        "Origin Access Control (OAC) restricts S3 access to only CloudFront",
+        "Field-level encryption protects sensitive fields in POST requests",
+        "Custom headers, HTTPS enforcement, geo-restriction"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"CloudFront + WAF + Shield is the edge security stack: DDoS absorption, bot filtering, and OWASP protection all happen before a request reaches the origin\"",
+        "\"S3 static site? CloudFront with OAC — the bucket is completely private, only CloudFront can read it\""
+       ]
+      }
+     ],
+     "short": "CloudFront",
+     "slug": "cloudfront",
+     "layer": "edge",
+     "order": 1
+    },
+    {
+     "name": "AWS CodeGuru Reviewer",
+     "oneliner": "ML-powered automated code review for security issues",
+     "tags": [
+      "SAST",
+      "Code Review",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Automated code review using ML — finds security issues, bugs, and best practice violations",
+        "Security Detector: hardcoded credentials, insecure crypto, OWASP vulnerabilities, logging of sensitive data",
+        "Integrates with CodeCommit, GitHub, Bitbucket — runs on pull requests",
+        "Also has CodeGuru Profiler for runtime performance analysis"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"In the PR review process, CodeGuru Reviewer automatically flags security issues — hardcoded credentials, use of weak crypto algorithms, log injection vulnerabilities — before the human review\"",
+        "\"This is part of shift-left: security feedback at the PR stage, not after deployment\""
+       ]
+      }
+     ],
+     "short": "CodeGuru Reviewer",
+     "slug": "codeguru-reviewer",
+     "layer": "build",
+     "order": 23
+    },
+    {
+     "name": "Amazon CodeWhisperer (now Amazon Q Developer)",
+     "oneliner": "AI code assistant with built-in security scanning",
+     "tags": [
+      "SAST",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "AI-powered code generation with security awareness",
+        "Built-in security scanning during code generation — flags insecure patterns",
+        "Reference tracking to identify code from open-source training data",
+        "IDE integration (VS Code, JetBrains, etc.)"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Amazon Q Developer scans code as developers write it, flagging insecure patterns inline — it's the earliest possible point for security feedback\""
+       ]
+      }
+     ],
+     "short": "Q Developer",
+     "slug": "q-developer",
+     "layer": "build",
+     "order": 24
+    }
+   ]
+  },
+  {
+   "category": "DevSecOps & CI/CD Security",
+   "id": "devsecops",
+   "services": [
+    {
+     "name": "AWS CodePipeline + CodeBuild",
+     "oneliner": "CI/CD pipeline — automate build, test, and deploy with security gates",
+     "tags": [
+      "SDLC",
+      "Pipeline",
+      "Automation"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "CodePipeline: orchestrates the pipeline stages (Source → Build → Test → Deploy)",
+        "CodeBuild: managed build environment — runs your build commands, tests, and security scans",
+        "Manual approval stages for security gate reviews before production",
+        "Artifacts encrypted with KMS, build environment is ephemeral (clean room per build)"
+       ]
+      },
+      {
+       "heading": "Security Scanning Integration",
+       "items": [
+        "SAST: Run SonarQube, Semgrep, or Bandit in CodeBuild",
+        "SCA: Run OWASP Dependency-Check or Snyk in CodeBuild",
+        "DAST: Run OWASP ZAP against staging environment",
+        "Container scanning: Inspector on ECR images",
+        "Secrets scanning: Trufflehog, gitleaks, git-secrets",
+        "IaC scanning: Checkov, cfn-nag for CloudFormation/Terraform"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"The secure SDLC pipeline: CodeCommit (source) → CodeBuild runs SAST (Semgrep) + SCA (Dependency-Check) + secrets scan (Trufflehog) → push to ECR triggers Inspector scan → deploy to staging → DAST (ZAP) → manual security approval → production\"",
+        "\"A critical SAST finding or a dependency with a known CVE fails the build — the pipeline stops before it reaches staging\"",
+        "\"Build artifacts are signed and encrypted with KMS, and the deploy role can only pull artifacts from the approved pipeline bucket\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "How do you integrate security into the CI/CD pipeline?",
+         "a": "Shift-left with gates: Pre-commit hooks (secrets scanning). Build stage: SAST + SCA + container scan. Test stage: DAST against staging. Deploy gate: manual approval for production. Post-deploy: continuous scanning with Inspector. All findings → Security Hub. Critical/High blocks the pipeline."
+        }
+       ]
+      }
+     ],
+     "short": "CodePipeline + CodeBuild",
+     "slug": "codepipeline-codebuild",
+     "layer": "build",
+     "order": 22
+    },
+    {
+     "name": "Amazon ECR (Elastic Container Registry)",
+     "oneliner": "Container image registry with built-in scanning",
+     "tags": [
+      "Containers",
+      "Vulnerability",
+      "SDLC"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Private container image registry — stores Docker images",
+        "Image scanning: basic (CVE scanning) or enhanced (via Inspector — OS + language package vulns)",
+        "Scan on push: every image scanned before it's available to deploy",
+        "Image signing with AWS Signer for provenance verification",
+        "Lifecycle policies to clean up old images"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Container images go to ECR with scan-on-push enabled using Inspector enhanced scanning — any critical CVE blocks deployment via a CodePipeline gate\"",
+        "\"We sign images with AWS Signer and enforce signature verification in ECS/EKS — only images from our pipeline can run in production\""
+       ]
+      }
+     ],
+     "short": "ECR",
+     "slug": "ecr",
+     "layer": "build",
+     "order": 25
+    },
+    {
+     "name": "AWS Signer",
+     "oneliner": "Code signing for Lambda functions and container images",
+     "tags": [
+      "Supply Chain",
+      "Integrity"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Digitally signs code artifacts — Lambda deployment packages, container images",
+        "Signing profiles define who can sign and what algorithms to use",
+        "Validation policies enforce that only signed code can deploy",
+        "Protects against tampered or unauthorized code"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For supply chain security, every Lambda deployment package is signed with AWS Signer. The Lambda function configuration enforces signature validation — unsigned or tampered code can't deploy\""
+       ]
+      }
+     ],
+     "short": "Signer",
+     "slug": "signer",
+     "layer": "build",
+     "order": 26
+    }
+   ]
+  },
+  {
+   "category": "Threat Modeling & Secure Design",
+   "id": "threat",
+   "services": [
+    {
+     "name": "AWS Threat Composer",
+     "oneliner": "Structured threat modeling tool from AWS",
+     "tags": [
+      "Threat Modeling",
+      "STRIDE",
+      "Design Review"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Web-based threat modeling tool from AWS — free to use",
+        "Structured approach: define system → identify threats → map mitigations → track assumptions",
+        "Uses AWS-specific threat categories and mitigation patterns",
+        "Export threat models as JSON for versioning and sharing"
+       ]
+      },
+      {
+       "heading": "Threat Modeling Frameworks",
+       "items": [
+        "STRIDE: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege",
+        "For each component in the architecture, ask: can an attacker Spoof identity? Tamper with data? etc.",
+        "Map each threat to AWS mitigations (e.g., Spoofing → Cognito + MFA, Tampering → KMS + integrity checks)"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"I'd threat model using STRIDE on each component: for the API endpoint — Spoofing → Cognito JWT validation; Tampering → request signing + input validation; Repudiation → CloudTrail logging; Info Disclosure → KMS encryption + TLS; DoS → WAF rate limiting + Shield; EoP → least-privilege IAM roles\"",
+        "\"AWS Threat Composer helps structure this: define the architecture, list the data flows, and systematically identify threats with AWS-specific mitigations\""
+       ]
+      },
+      {
+       "heading": "q&a",
+       "qa": [
+        {
+         "q": "Walk me through how you'd threat model an AWS application",
+         "a": "1) Understand the architecture: draw data flow diagrams, identify trust boundaries 2) Use STRIDE on each component/flow crossing a trust boundary 3) For each threat, identify likelihood and impact 4) Map to AWS mitigations (IAM, KMS, WAF, GuardDuty, etc.) 5) Document assumptions and residual risks 6) Review with the dev team — the threat model lives with the code and updates as the architecture changes."
+        },
+        {
+         "q": "What's the Shared Responsibility Model?",
+         "a": "AWS secures 'of' the cloud (physical, network infra, hypervisor, managed service infrastructure). Customer secures 'in' the cloud (data, IAM, app code, OS config, network config, encryption). The line shifts by service type: EC2 = you manage everything above the hypervisor. RDS = AWS manages the DB engine, you manage data and access. Lambda = AWS manages everything except your code and IAM role. Critical for AppSec: you always own your application code, data, and identity management."
+        }
+       ]
+      }
+     ],
+     "short": "Threat Composer",
+     "slug": "threat-composer",
+     "layer": "foundation",
+     "order": 42
+    },
+    {
+     "name": "AWS Well-Architected Framework (Security Pillar)",
+     "oneliner": "Best practices for secure architecture",
+     "tags": [
+      "Best Practices",
+      "Design Review"
+     ],
+     "sections": [
+      {
+       "heading": "Security Pillar Principles",
+       "items": [
+        "Implement a strong identity foundation (IAM, least privilege, centralized identity)",
+        "Enable traceability (CloudTrail, Config, logging everything)",
+        "Apply security at all layers (edge, VPC, subnet, instance, OS, application)",
+        "Automate security best practices (Config rules, automated remediation)",
+        "Protect data in transit and at rest (TLS everywhere, KMS encryption)",
+        "Keep people away from data (no direct access to production data, use tools and automation)",
+        "Prepare for security events (incident response plan, runbooks, regular drills)"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"My approach follows the Well-Architected Security Pillar: defense in depth at every layer, automated compliance, encrypted everything, and people never touch production data directly\"",
+        "\"For a design review, I'd run through the Security Pillar checklist: Is identity least-privilege? Is everything logged? Is data encrypted at rest and in transit? Are security controls automated?\""
+       ]
+      }
+     ],
+     "short": "Well-Architected",
+     "slug": "well-architected",
+     "layer": "foundation",
+     "order": 43
+    },
+    {
+     "name": "Shared Responsibility Model",
+     "oneliner": "Defines who secures what — AWS vs. customer",
+     "tags": [
+      "Fundamentals",
+      "Compliance"
+     ],
+     "sections": [
+      {
+       "heading": "The Model",
+       "items": [
+        "AWS Responsibility (Security OF the Cloud): Physical security, hardware, networking, hypervisor, managed service infrastructure",
+        "Customer Responsibility (Security IN the Cloud): Data, IAM, application code, OS configuration, network configuration, encryption choices",
+        "Varies by service type — more managed = less customer responsibility"
+       ]
+      },
+      {
+       "heading": "By Service Type",
+       "items": [
+        "IaaS (EC2): Customer manages OS, middleware, application, data, networking config, firewall rules",
+        "PaaS (RDS, EMR): AWS manages OS + database engine patching. Customer manages data, access, encryption config",
+        "Serverless (Lambda, S3, DynamoDB): AWS manages almost everything. Customer manages code, IAM, data, encryption config",
+        "SaaS (AWS managed services): AWS manages the service. Customer manages access and data"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"The Shared Responsibility Model is foundational — when I threat model a Lambda function, I know AWS handles the runtime and OS, so my focus is on the code quality, IAM role, input validation, and dependency security\"",
+        "\"A common mistake is assuming 'it's in AWS so it's secure.' The customer still owns IAM misconfiguration, public S3 buckets, unencrypted data, and vulnerable application code\""
+       ]
+      }
+     ],
+     "short": "Shared Responsibility Model",
+     "slug": "shared-responsibility-model",
+     "layer": "foundation",
+     "order": 44
+    }
+   ]
+  },
+  {
+   "category": "Compliance & Governance",
+   "id": "compliance",
+   "services": [
+    {
+     "name": "AWS Organizations & SCPs",
+     "oneliner": "Multi-account structure with service control guardrails",
+     "tags": [
+      "Governance",
+      "Multi-Account"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Multi-account management: group accounts into OUs (dev, staging, prod, security, logging)",
+        "Service Control Policies (SCPs): guardrails that restrict what ANY principal in the account can do, even root",
+        "SCPs set the maximum permissions boundary — can't be overridden by IAM policies",
+        "Consolidated billing, centralized logging, cross-account access management"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"SCPs are the top-level guardrail — even if a developer creates an IAM policy with full admin access, the SCP blocks actions we've disallowed (like disabling CloudTrail, leaving the approved regions, or using unapproved services)\"",
+        "\"Multi-account strategy: separate accounts for workloads (dev/staging/prod), a dedicated security account for GuardDuty/Security Hub, a logging account for CloudTrail with S3 Object Lock\""
+       ]
+      }
+     ],
+     "short": "Organizations & SCPs",
+     "slug": "organizations-scps",
+     "layer": "foundation",
+     "order": 38
+    },
+    {
+     "name": "AWS Audit Manager",
+     "oneliner": "Automated evidence collection for compliance audits",
+     "tags": [
+      "Compliance",
+      "Audit"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Automated evidence collection: Config rules, CloudTrail logs, Security Hub findings",
+        "Pre-built frameworks: SOC 2, PCI-DSS, HIPAA, GDPR, FedRAMP",
+        "Maps AWS controls to compliance requirements automatically",
+        "Generates audit-ready reports"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"For compliance evidence, Audit Manager automatically collects proof from Config, CloudTrail, and Security Hub — so audit prep isn't a manual scramble\""
+       ]
+      }
+     ],
+     "short": "Audit Manager",
+     "slug": "audit-manager",
+     "layer": "foundation",
+     "order": 40
+    },
+    {
+     "name": "AWS Artifact",
+     "oneliner": "Access AWS compliance reports and agreements",
+     "tags": [
+      "Compliance"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Download AWS compliance reports: SOC 1/2/3, PCI-DSS, ISO 27001, FedRAMP",
+        "Manage agreements: BAA (HIPAA), GDPR DPA",
+        "Proves that AWS infrastructure meets compliance requirements (your part of shared responsibility)"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"AWS Artifact gives us the AWS side of compliance evidence — SOC 2 reports prove AWS infrastructure is secure, and the BAA establishes HIPAA obligations\""
+       ]
+      }
+     ],
+     "short": "Artifact",
+     "slug": "artifact",
+     "layer": "foundation",
+     "order": 41
+    },
+    {
+     "name": "AWS Control Tower",
+     "oneliner": "Automated multi-account setup with security guardrails",
+     "tags": [
+      "Governance",
+      "Multi-Account"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "Sets up a secure, multi-account environment with best practices built in",
+        "Landing zone: pre-configured accounts for logging, audit, shared services",
+        "Guardrails: preventive (SCPs) and detective (Config rules) controls",
+        "Account factory: standardized new account creation with baseline security"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Control Tower automates the secure multi-account landing zone — every new account gets baseline security controls: CloudTrail enabled, Config recording, guardrails enforced\""
+       ]
+      }
+     ],
+     "short": "Control Tower",
+     "slug": "control-tower",
+     "layer": "foundation",
+     "order": 39
+    }
+   ]
+  },
+  {
+   "category": "Containers & Compute Security",
+   "id": "containers",
+   "services": [
+    {
+     "name": "Amazon ECS / EKS Security",
+     "oneliner": "Container orchestration with security controls",
+     "tags": [
+      "Containers",
+      "Least Privilege",
+      "Network"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "ECS (Elastic Container Service): AWS-managed container orchestration",
+        "EKS (Elastic Kubernetes Service): managed Kubernetes",
+        "Fargate: serverless containers — no EC2 to manage",
+        "Task IAM roles (ECS) / Service Accounts (EKS): least-privilege per container"
+       ]
+      },
+      {
+       "heading": "Security Controls",
+       "items": [
+        "Image scanning in ECR before deployment",
+        "Task/pod IAM roles — each container gets only the permissions it needs",
+        "Network policies (EKS) / Security Groups (ECS) for pod-to-pod traffic control",
+        "Secrets injection via Secrets Manager or SSM Parameter Store",
+        "Runtime monitoring with GuardDuty for EKS audit logs",
+        "Read-only root filesystems to prevent container modification"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"Each ECS task has its own IAM task role — the API container can read DynamoDB but not S3, the worker container can write to S3 but not DynamoDB\"",
+        "\"Fargate eliminates the EC2 attack surface entirely — no host OS to patch, no SSH to manage, no container escape to a shared host\""
+       ]
+      }
+     ],
+     "short": "ECS / EKS",
+     "slug": "ecs-eks",
+     "layer": "compute",
+     "order": 15
+    },
+    {
+     "name": "Amazon GuardDuty for EKS/ECS",
+     "oneliner": "Runtime threat detection for containerized workloads",
+     "tags": [
+      "Containers",
+      "Threat Detection"
+     ],
+     "sections": [
+      {
+       "heading": "what it does",
+       "items": [
+        "EKS Audit Log Monitoring: detects suspicious Kubernetes API calls",
+        "EKS Runtime Monitoring: detects container-level threats (crypto mining, reverse shells, privilege escalation)",
+        "ECS Runtime Monitoring (Fargate): detects threats in serverless containers",
+        "Findings include: anonymous API access, exec into pod, container escape attempts"
+       ]
+      },
+      {
+       "heading": "how I apply it",
+       "items": [
+        "\"GuardDuty monitors EKS at both the API level (who's calling kubectl) and the runtime level (what's running inside containers) — it would catch a container running a crypto miner or opening a reverse shell\""
+       ]
+      }
+     ],
+     "short": "GuardDuty · EKS/ECS",
+     "slug": "guardduty-eks-ecs",
+     "layer": "detect",
+     "order": 30
+    }
+   ]
+  }
+ ],
+ "scenarios": [
+  {
+   "q": "\"You're reviewing a new microservice architecture. How do you approach security?\"",
+   "a": "<h4>Framework Answer</h4>\n<ul>\n<li><strong>Threat Model</strong>: Use STRIDE on each component and data flow crossing a trust boundary. Use AWS Threat Composer to document.</li>\n<li><strong>Identity</strong>: Each microservice has its own IAM role (least privilege). Inter-service auth via mTLS or JWT validation.</li>\n<li><strong>Network</strong>: Private subnets, Security Groups scoped per service, PrivateLink for internal communication. No service talks to the internet directly.</li>\n<li><strong>Data</strong>: KMS encryption at rest for every data store. TLS 1.2+ in transit. Secrets Manager for credentials.</li>\n<li><strong>API Security</strong>: API Gateway with Cognito/Lambda Authorizer, WAF rules, request validation, rate limiting.</li>\n<li><strong>Supply Chain</strong>: ECR image scanning, signed images (AWS Signer), SAST/SCA in CI/CD pipeline.</li>\n<li><strong>Detection</strong>: GuardDuty for threat detection, CloudTrail for audit, CloudWatch for monitoring, EventBridge for automated response.</li>\n<li><strong>Compliance</strong>: Config rules for continuous compliance, Security Hub for centralized findings.</li>\n</ul>"
+  },
+  {
+   "q": "\"A developer accidentally committed AWS access keys to a public GitHub repo. What do you do?\"",
+   "a": "<h4>Incident Response</h4>\n<ul>\n<li><strong>Contain (minutes)</strong>: Immediately disable the access key in IAM. Don't delete — disable, so you can investigate.</li>\n<li><strong>Assess</strong>: Check CloudTrail for all API calls made with that key since exposure. Check the commit timestamp to determine exposure window.</li>\n<li><strong>Investigate</strong>: Use Detective to visualize all resources the key accessed. Look for: new IAM users/roles created, EC2 instances launched (crypto mining), S3 data accessed, Security Group changes.</li>\n<li><strong>Eradicate</strong>: Rotate the credential. If the key had broad permissions, audit all resources for backdoors (new IAM users, Lambda functions, EventBridge rules the attacker may have planted).</li>\n<li><strong>Prevent</strong>: Add git-secrets/Trufflehog as pre-commit hooks. Add secrets scanning in CI pipeline. Use IAM roles instead of access keys. Enable GuardDuty for compromised credential detection. Review IAM policies for least privilege.</li>\n</ul>"
+  },
+  {
+   "q": "\"How would you secure a serverless application end-to-end?\"",
+   "a": "<h4>Full Stack Answer</h4>\n<ul>\n<li><strong>Frontend</strong>: CloudFront + S3 with OAC. WAF with OWASP managed rules. Shield for DDoS.</li>\n<li><strong>Auth</strong>: Cognito User Pool with MFA. JWT validation at API Gateway. Scopes for authorization.</li>\n<li><strong>API</strong>: API Gateway with request validation, throttling, Lambda Authorizer for custom auth logic.</li>\n<li><strong>Compute</strong>: Lambda with per-function IAM roles (least privilege). Input validation in handler. KMS-encrypted environment variables for config.</li>\n<li><strong>Data</strong>: DynamoDB with KMS encryption, fine-grained access control with IAM conditions. S3 with bucket policy, encryption, versioning.</li>\n<li><strong>Secrets</strong>: Secrets Manager with automatic rotation for database credentials.</li>\n<li><strong>Pipeline</strong>: CodePipeline with SAST (Semgrep), SCA (Dependency-Check), secrets scanning. Inspector scans Lambda dependencies.</li>\n<li><strong>Monitoring</strong>: CloudTrail, GuardDuty, CloudWatch alarms on errors, Security Hub aggregation.</li>\n</ul>"
+  },
+  {
+   "q": "\"How do you handle logging and monitoring for security?\"",
+   "a": "<h4>Comprehensive Logging Strategy</h4>\n<ul>\n<li><strong>CloudTrail</strong>: Organization-wide trail, management + data events, immutable logs in locked S3 bucket with Object Lock.</li>\n<li><strong>VPC Flow Logs</strong>: Capture all network traffic metadata. Feed to GuardDuty for anomaly detection.</li>\n<li><strong>Application Logs</strong>: CloudWatch Logs. Structured JSON logging. Never log sensitive data (PII, credentials, tokens).</li>\n<li><strong>GuardDuty</strong>: Continuous threat detection across CloudTrail, VPC Flow Logs, DNS, S3, EKS, Lambda, RDS.</li>\n<li><strong>Config</strong>: Track every resource configuration change. Compliance rule evaluation on every change.</li>\n<li><strong>Security Hub</strong>: Aggregate all findings. Compliance dashboards. Automated remediation via EventBridge.</li>\n<li><strong>Alerting</strong>: CloudWatch Alarms → SNS → PagerDuty/Slack. EventBridge rules for automated response.</li>\n<li><strong>Investigation</strong>: Detective for visual correlation. Athena for CloudTrail queries. Security Lake for long-term analysis.</li>\n</ul>"
+  },
+  {
+   "q": "\"What's your approach to secure SDLC?\"",
+   "a": "<h4>Security at Every Phase</h4>\n<ul>\n<li><strong>Design</strong>: Threat modeling (STRIDE + AWS Threat Composer). Security design review. AWS Well-Architected review.</li>\n<li><strong>Develop</strong>: IDE security plugins (Amazon Q Developer). Pre-commit hooks (git-secrets). Secure coding guidelines. Security champions program.</li>\n<li><strong>Build</strong>: SAST (SonarQube/Semgrep) in CodeBuild. SCA (OWASP Dependency-Check/Snyk). Secrets scanning (Trufflehog). IaC scanning (Checkov/cfn-nag).</li>\n<li><strong>Test</strong>: DAST (OWASP ZAP) against staging. Container image scanning (Inspector on ECR). Penetration testing.</li>\n<li><strong>Deploy</strong>: Manual security approval gate in CodePipeline. Signed artifacts (AWS Signer). Immutable infrastructure (deploy new, don't patch).</li>\n<li><strong>Operate</strong>: Continuous scanning (Inspector). Runtime detection (GuardDuty). Config compliance. Vulnerability SLA tracking. Regular Well-Architected reviews.</li>\n</ul>"
+  },
+  {
+   "q": "\"How do you handle a data breach in AWS?\"",
+   "a": "<h4>IR Framework</h4>\n<ul>\n<li><strong>Detect</strong>: GuardDuty alert, Macie finding (sensitive data exposure), or CloudTrail anomaly.</li>\n<li><strong>Contain</strong>: Isolate affected resources — change Security Group to deny-all, disable compromised credentials, revoke IAM sessions (aws iam put-user-policy with explicit deny-all).</li>\n<li><strong>Analyze</strong>: CloudTrail → what was accessed? VPC Flow Logs → where did data go? Macie → what sensitive data was involved? Detective → visualize full scope.</li>\n<li><strong>Eradicate</strong>: Patch the vulnerability. Rotate all affected credentials. Remove any persistence mechanisms (backdoor IAM users, Lambda functions, EventBridge rules).</li>\n<li><strong>Recover</strong>: Restore from known-good state. Verify integrity. Re-enable services with enhanced monitoring.</li>\n<li><strong>Post-Mortem</strong>: Root cause analysis. Update detection rules. Add preventive controls. Update threat model. Brief stakeholders.</li>\n</ul>"
+  }
+ ]
+}

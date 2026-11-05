@@ -1,5 +1,6 @@
 ---
 title: projects
+draft: true   # hidden for launch — not in the nav yet
 ---
 <!-- Add real repos/screenshots as things ship. A row that ships beats ten that vibe. -->
 

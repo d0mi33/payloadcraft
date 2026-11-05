@@ -3,15 +3,17 @@
 # theme: "field manual" — engineering-print design system
 # ----------------------------------------------------------------
 
-baseURL = 'https://payloadcraft.com/'
-languageCode = 'en-us'
+baseURL = 'https://d0mi33.github.io/payloadcraft/'
+enableRobotsTXT = true
+locale = 'en-us'
 title = 'payloadcraft'
 theme = 'payloadcraft'
 
 # author shown in meta / feeds
 [params]
   description = 'offensive security · red teaming · tooling — writeups, PoCs and benchmarks.'
-  author = 'payloadcraft'
+  author = 'd0mi33'
+  github = 'https://github.com/d0mi33'
   footerNote = 'no trackers · no js · rss only'
   docNo = 'FM-PC-26'
   motto = 'If it can’t be reproduced, it’s a story — not a writeup.'
@@ -31,24 +33,19 @@ theme = 'payloadcraft'
 
 # top navigation (order = display order, numbers are added by the theme)
 [[menus.main]]
-  name = 'blog'
-  pageRef = '/blog'
+  name = 'home'
+  pageRef = '/'
   weight = 10
 
 [[menus.main]]
-  name = 'projects'
-  pageRef = '/projects'
+  name = 'blog'
+  pageRef = '/blog'
   weight = 20
 
 [[menus.main]]
-  name = 'uses'
-  pageRef = '/uses'
+  name = 'research'
+  pageRef = '/research'
   weight = 30
-
-[[menus.main]]
-  name = 'about'
-  pageRef = '/about'
-  weight = 40
 
 [related]
   includeNewer = true

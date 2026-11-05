@@ -1,0 +1,15 @@
+{{/* one page per service, generated from data/research/aws_appsec.json.
+     the data file stays the single source; edit it there, not here. */}}
+{{ $d := hugo.Data.research.aws_appsec }}
+{{ range $c := $d.categories }}
+  {{ range $s := $c.services }}
+    {{ $.AddPage (dict
+      "kind" "page"
+      "path" $s.slug
+      "title" $s.name
+      "dates" (dict "date" (time.AsTime "2026-11-05"))
+      "content" (dict "mediaType" "text/markdown" "value" $s.oneliner)
+      "params" (dict "service" $s "category" $c.category)
+    ) }}
+  {{ end }}
+{{ end }}
