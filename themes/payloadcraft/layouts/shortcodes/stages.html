@@ -1,0 +1,43 @@
+{{/* expandable stage list from data/research/<dataset>.json.
+     usage: {{< stages dataset="faultline_run" left="what can go wrong" right="what holds the line" note="observed" >}} */}}
+{{ $stages := index hugo.Data.research (.Get "dataset") }}
+{{ $left := .Get "left" | default "attacks" }}
+{{ $right := .Get "right" | default "defenses" }}
+{{ $note := .Get "note" | default "gotcha" }}
+<div class="rs-legend" aria-hidden="true">
+  <span><i class="lg lg-atk"></i>{{ $left }}</span>
+  <span><i class="lg lg-def"></i>{{ $right }}</span>
+  <span><i class="lg lg-note"></i>{{ $note }}</span>
+  <span class="rs-legend-fill"></span>
+  <span>{{ len $stages }} STAGES · CLICK TO EXPAND</span>
+</div>
+<ol class="stages">
+  {{ range $stages }}
+    <li class="stage">
+      <details>
+        <summary>
+          <span class="stage-no">{{ printf "%02d" (int .n) }}</span>
+          <span class="stage-t">
+            <span class="stage-title">{{ .title }}</span>
+            <span class="stage-sub">{{ .sub }}</span>
+          </span>
+          <span class="stage-x" aria-hidden="true"></span>
+        </summary>
+        <div class="stage-body">
+          <p class="stage-concept">{{ .concept | safeHTML }}</p>
+          <div class="ad-grid">
+            <section class="ad ad-atk">
+              <h4 class="ad-h">{{ $left }}</h4>
+              <ul>{{ range .attacks }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul>
+            </section>
+            <section class="ad ad-def">
+              <h4 class="ad-h">{{ $right }}</h4>
+              <ul>{{ range .defenses }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul>
+            </section>
+          </div>
+          {{ with .gotcha }}<aside class="gotcha"><span class="gotcha-k">{{ $note }}</span><p>{{ . | safeHTML }}</p></aside>{{ end }}
+        </div>
+      </details>
+    </li>
+  {{ end }}
+</ol>

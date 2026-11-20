@@ -739,3 +739,32 @@ details[open] > summary .stage-x::after { transform: scaleY(0); }
   .quad.quad-3 .quad-cell { border-right: none; border-bottom: 1px dashed var(--line); }
   .quad.quad-3 .quad-cell:last-child { border-bottom: none; }
 }
+
+/* ---------------- research · doc entries (stages + diagram inside post-body) ---- */
+.post-body .stages { padding-left: 0; margin: 0; }
+.post-body .stage { margin: 0; }
+.post-body .ad-h { margin: 0; padding: 9px 14px 0; font-family: var(--mono); font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+.post-body .ad ul { padding: 4px 14px 6px; }
+.post-body .ad li { margin: 0; }
+.post-body .rs-legend { margin-top: 1.6em; }
+
+.fl-fig { margin: 1.8em 0; padding: 18px; border: 1px solid var(--line-strong); background: var(--paper); }
+.fl-fig svg { display: block; width: 100%; height: auto; }
+.fl-tall { display: none !important; }
+@media (max-width: 640px) {
+  .fl-fig { padding: 10px; }
+  .fl-wide { display: none !important; }
+  .fl-tall { display: block !important; }
+}
+.fl-ns { fill: none; stroke: var(--line-strong); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.fl-b { fill: var(--panel); stroke: var(--ink-soft); stroke-width: 1; }
+.fl-bp { stroke: var(--accent); stroke-width: 2; }
+.fl-bx { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
+.fl-t { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; fill: var(--ink); }
+.fl-s { font-family: var(--mono); font-size: 11px; fill: var(--dim); }
+.fl-ta, .fl-sa { fill: var(--accent); }
+.fl-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; fill: var(--dim); }
+.fl-l { font-family: var(--mono); font-size: 10px; fill: var(--ink-soft); }
+.fl-c { font-family: var(--serif); font-style: italic; font-size: 15px; fill: var(--ink-soft); }
+.fl-ax { stroke: var(--ink-soft); stroke-width: 1.2; }
+.fl-ahp { fill: var(--ink-soft); }
