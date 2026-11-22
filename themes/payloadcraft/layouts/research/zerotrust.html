@@ -1,0 +1,260 @@
+{{ define "main" }}
+{{/* beginner explainer, read top to bottom. still zero js: quizzes are <details>,
+     the checkpoint walker and tier switch are css radio tabs (.zt-tabs). */}}
+{{ $d := index hugo.Data.research .Params.dataset }}
+<article class="post post-wide zt">
+  {{ partial "research-head.html" . }}
+
+  <nav class="zt-route" aria-label="parts of this guide">
+    <div class="zt-route-h"><span>route map</span><span>{{ len $d.route }} parts · start at 01</span></div>
+    <ol>
+      {{ range $i, $r := $d.route }}
+        <li><a href="#{{ $r.id }}"><span class="n">{{ printf "%02d" (add $i 1) }}</span><span class="t">{{ $r.t }}</span><span class="s">{{ $r.s }}</span></a></li>
+      {{ end }}
+    </ol>
+  </nav>
+
+  {{/* ============================ 01 ============================ */}}
+  <section class="zt-part" id="why">
+    <div class="zt-head"><span class="zt-no">01</span><span class="zt-label">the problem</span><h2>Walls stopped working</h2></div>
+    <p class="zt-lede">Traditional security worked like a castle: build a strong wall, check people at the gate, and trust whoever is inside. Zero trust works like an airport where <b>every door checks your badge, every time</b>, no matter how you got into the building.</p>
+
+    <div class="zt-versus">
+      <div>
+        <span class="zt-tag zt-tag-old">old model · perimeter</span>
+        <svg viewBox="0 0 320 150" role="img" aria-label="A walled network: one gate, and inside the wall every system can reach every other system freely.">
+          <rect class="zt-wall" x="20" y="15" width="280" height="120"/>
+          <rect class="zt-gate" x="8" y="62" width="24" height="26"/>
+          <text class="zt-sl" x="20" y="105" text-anchor="middle">gate</text>
+          <g class="zt-link">
+            <line x1="90" y1="50" x2="170" y2="45"/><line x1="90" y1="50" x2="130" y2="105"/><line x1="170" y1="45" x2="240" y2="70"/>
+            <line x1="130" y1="105" x2="240" y2="70"/><line x1="170" y1="45" x2="130" y2="105"/><line x1="240" y1="70" x2="200" y2="110"/><line x1="130" y1="105" x2="200" y2="110"/>
+          </g>
+          <g class="zt-node"><circle cx="170" cy="45" r="11"/><circle cx="130" cy="105" r="11"/><circle cx="240" cy="70" r="11"/><circle cx="200" cy="110" r="11"/></g>
+          <circle class="zt-bad" cx="90" cy="50" r="11"/>
+          <text class="zt-sl zt-sa" x="90" y="30" text-anchor="middle">breached</text>
+        </svg>
+        <p>One stolen password or one compromised machine and the attacker is "inside". From there they can move sideways to anything, because inside means trusted.</p>
+      </div>
+      <div>
+        <span class="zt-tag zt-tag-new">new model · zero trust</span>
+        <svg viewBox="0 0 320 150" role="img" aria-label="Each system sits behind its own checkpoint; every connection passes a verify step.">
+          <g class="zt-vlink"><line x1="90" y1="50" x2="170" y2="45"/><line x1="170" y1="45" x2="240" y2="70"/><line x1="130" y1="105" x2="200" y2="110"/></g>
+          <g class="zt-check"><rect x="124" y="41" width="12" height="12"/><rect x="199" y="51" width="12" height="12"/><rect x="159" y="101" width="12" height="12"/></g>
+          <g class="zt-tick" text-anchor="middle"><text x="130" y="50">✓</text><text x="205" y="60">✓</text><text x="165" y="110">✓</text></g>
+          <g class="zt-node"><circle cx="170" cy="45" r="11"/><circle cx="130" cy="105" r="11"/><circle cx="240" cy="70" r="11"/><circle cx="200" cy="110" r="11"/></g>
+          <g class="zt-ring"><circle cx="90" cy="50" r="16"/><circle cx="170" cy="45" r="16"/><circle cx="130" cy="105" r="16"/><circle cx="240" cy="70" r="16"/><circle cx="200" cy="110" r="16"/></g>
+          <circle class="zt-bad" cx="90" cy="50" r="11"/>
+          <text class="zt-sl zt-sa" x="90" y="28" text-anchor="middle">breached</text>
+          <text class="zt-sl" x="90" y="80" text-anchor="middle">contained</text>
+        </svg>
+        <p>There is no "inside". Every request, even from a neighboring system, must prove who it is and that it is allowed. A breach stays small because each hop is checked again.</p>
+      </div>
+    </div>
+
+    <div class="zt-why">
+      <div class="zt-timeline" aria-label="Time from a known bug to a working exploit">
+        <span class="zt-k">bug → working exploit</span>
+        <div class="zt-tl"><span>before</span><i class="zt-bar"></i></div>
+        <div class="zt-tl"><span></span><em>months</em></div>
+        <div class="zt-tl"><span>with AI</span><i class="zt-bar zt-bar-fast"></i></div>
+        <div class="zt-tl"><span></span><em>hours, for a few dollars</em></div>
+      </div>
+      <p><b>Why now?</b> Frontier AI models can turn a vulnerability into a working attack in hours instead of months. Attackers also use them to read a security patch and work backwards to the hole it fixed. Defenders get the same speed, but only if their systems were designed expecting a breach. Walls and slow patch cycles can't keep up.</p>
+    </div>
+  </section>
+
+  {{/* ============================ 02 ============================ */}}
+  <section class="zt-part" id="principles">
+    <div class="zt-head"><span class="zt-no">02</span><span class="zt-label">the foundation</span><h2>Three rules, one test</h2></div>
+    <p class="zt-lede">Zero trust is an old idea (formalized in 1994, standardized by NIST in SP 800-207 in 2020). It comes down to three rules. Everything later in this guide is one of these rules applied to agents.</p>
+
+    <div class="zt-principles">
+      {{ range $d.principles }}
+        <div class="zt-principle">
+          <span class="zt-pk">{{ .k }}</span>
+          <h3>{{ .t }}</h3>
+          <p>{{ .d }}</p>
+          <p class="zt-ex"><b>Agent example:</b> {{ .ex }}</p>
+        </div>
+      {{ end }}
+    </div>
+
+    <div class="zt-terms">
+      {{ range $d.terms }}<div class="zt-term"><span class="zt-k">term · {{ .k }}</span><p>{{ .d | safeHTML }}</p></div>{{ end }}
+    </div>
+
+    <div class="zt-bench">
+      <div class="zt-bench-h"><span>hands-on · impossible or tedious?</span><span>{{ len $d.sorter }} controls · guess, then open</span></div>
+      <div class="zt-bench-body">
+        <p>The guide's key design test: <b>does a control make an attack impossible, or just tedious?</b> Humans give up when things get annoying. An AI attacker has unlimited patience and pays almost nothing per attempt, so annoying isn't enough. Decide for each control, then open it to check.</p>
+        <div class="zt-quiz">
+          {{ range $d.sorter }}
+            <details class="zt-q">
+              <summary><span class="zt-q-c">{{ .c }}</span><span class="zt-q-r">reveal</span></summary>
+              <p><span class="zt-verdict zt-v-{{ .a }}">{{ if eq .a "tedious" }}just tedious{{ else }}impossible{{ end }}</span>{{ .why }}</p>
+            </details>
+          {{ end }}
+        </div>
+        <p class="zt-rule">Rule of thumb: when in doubt, remove the capability instead of slowing it down.</p>
+      </div>
+    </div>
+  </section>
+
+  {{/* ============================ 03 ============================ */}}
+  <section class="zt-part" id="agents">
+    <div class="zt-head"><span class="zt-no">03</span><span class="zt-label">what changes</span><h2>Why agents are different</h2></div>
+    <p class="zt-lede">A normal program does exactly what its code says. An agent reads a goal in plain language, picks its own tools, and runs many steps without asking. That creates five problems older security tools weren't built for.</p>
+    <ul class="zt-diffs">
+      {{ range $d.diffs }}<li><div class="zt-dk"><small>{{ .k }}</small>{{ .t }}</div><p>{{ .d | safeHTML }}</p></li>{{ end }}
+    </ul>
+    <aside class="gotcha"><span class="gotcha-k">key idea</span><p>Most agent attacks don't break any permission. The agent uses access it legitimately has, in a way nobody intended. That's why classic access control alone doesn't stop them, and why monitoring behavior matters as much as blocking.</p></aside>
+  </section>
+
+  {{/* ============================ 04 ============================ */}}
+  <section class="zt-part" id="flow">
+    <div class="zt-head"><span class="zt-no">04</span><span class="zt-label">the walkthrough</span><h2>Follow one agent request</h2></div>
+    <p class="zt-lede">Here is zero trust in motion. Follow a single, ordinary task through {{ len $d.hops }} checkpoints. At each one, see what gets checked, which attack it stops, and what breaks if you skip it.</p>
+    <div class="zt-scenario">
+      <span class="zt-k">the task</span>
+      <q>{{ $d.scenario.task }}</q>
+      <span class="zt-hidden">Hidden in one complaint: <i>"{{ $d.scenario.hidden }}"</i></span>
+    </div>
+
+    {{ $n := len $d.hops }}
+    <div class="zt-tabs zt-flow">
+      {{ range $i, $h := $d.hops }}<input class="zt-radio" type="radio" name="zt-hop" id="zt-hop-{{ $i }}" aria-label="checkpoint {{ add $i 1 }}: {{ $h.t }}"{{ if eq $i 0 }} checked{{ end }}>{{ end }}
+      <div class="zt-tablist-scroll">
+        <div class="zt-tablist zt-hops">
+          {{ range $i, $h := $d.hops }}<label for="zt-hop-{{ $i }}"><span class="hn">{{ add $i 1 }}</span><span class="ht">{{ $h.t }}</span></label>{{ end }}
+        </div>
+      </div>
+      <div class="zt-panels">
+        {{ range $i, $h := $d.hops }}
+          <div class="zt-panel">
+            <div class="zt-hp-top"><h3>{{ add $i 1 }}. {{ $h.t }}</h3><div class="zt-chips"><span>rule: {{ $h.rule }}</span><span>checkpoint {{ add $i 1 }} of {{ $n }}</span></div></div>
+            <p class="zt-hp-what">{{ $h.what }}</p>
+            <div class="zt-hp-grid">
+              <div class="zt-hp-check"><span class="zt-k">what's checked</span><p>{{ $h.check }}</p></div>
+              <div class="zt-hp-stops"><span class="zt-k">what it stops</span><p>{{ $h.stops }}</p></div>
+              <div class="zt-hp-miss"><span class="zt-k">if you skip it</span><p>{{ $h.miss }}</p></div>
+            </div>
+            <div class="zt-hp-nav">
+              {{ if gt $i 0 }}<label class="zt-btn" for="zt-hop-{{ sub $i 1 }}">◂ previous</label>{{ else }}<span></span>{{ end }}
+              {{ if lt (add $i 1) $n }}<label class="zt-btn" for="zt-hop-{{ add $i 1 }}">next checkpoint ▸</label>{{ end }}
+            </div>
+          </div>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+
+  {{/* ============================ 05 ============================ */}}
+  <section class="zt-part" id="threats">
+    <div class="zt-head"><span class="zt-no">05</span><span class="zt-label">know the enemy</span><h2>The five threats</h2></div>
+    <p class="zt-lede">OWASP groups today's agent attacks into five families. Open each one to see how it works, what stops it, and the detail people get wrong.</p>
+    <div class="rs-legend" aria-hidden="true">
+      <span><i class="lg lg-atk"></i>attack</span>
+      <span><i class="lg lg-def"></i>defense</span>
+      <span><i class="lg lg-note"></i>gotcha</span>
+      <span class="rs-legend-fill"></span>
+      <span>{{ len $d.threats }} THREATS · CLICK TO EXPAND</span>
+    </div>
+    <ol class="stages">
+      {{ range $d.threats }}
+        <li class="stage">
+          <details>
+            <summary>
+              <span class="stage-no">{{ printf "%02d" (int .n) }}</span>
+              <span class="stage-t"><span class="stage-title">{{ .title }}</span><span class="stage-sub">{{ .sub }}</span></span>
+              <span class="stage-x" aria-hidden="true"></span>
+            </summary>
+            <div class="stage-body">
+              <p class="stage-concept">{{ .concept | safeHTML }}</p>
+              <div class="ad-grid">
+                <section class="ad ad-atk"><h3 class="ad-h">attacks</h3><ul>{{ range .attacks }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul></section>
+                <section class="ad ad-def"><h3 class="ad-h">defenses</h3><ul>{{ range .defenses }}<li><b>{{ .name }}</b>{{ .desc | safeHTML }}</li>{{ end }}</ul></section>
+              </div>
+              {{ with .gotcha }}<aside class="gotcha"><span class="gotcha-k">gotcha</span><p>{{ . | safeHTML }}</p></aside>{{ end }}
+            </div>
+          </details>
+        </li>
+      {{ end }}
+    </ol>
+  </section>
+
+  {{/* ============================ 06 ============================ */}}
+  <section class="zt-part" id="tiers">
+    <div class="zt-head"><span class="zt-no">06</span><span class="zt-label">what to build</span><h2>Three maturity tiers</h2></div>
+    <p class="zt-lede">You don't build everything on day one. The guide splits controls into three tiers. Each tier strengthens the one below it rather than replacing it. Pick a tier to see what it asks for across {{ len $d.caps }} capabilities.</p>
+    <div class="zt-tabs zt-tiers">
+      {{ range $t, $tier := $d.tiers }}<input class="zt-radio" type="radio" name="zt-tier" id="zt-tier-{{ $t }}" aria-label="{{ $tier.name }} tier"{{ if eq $t 0 }} checked{{ end }}>{{ end }}
+      <div class="zt-tablist zt-tier-switch">
+        {{ range $t, $tier := $d.tiers }}<label for="zt-tier-{{ $t }}">{{ $tier.name }}</label>{{ end }}
+      </div>
+      <div class="zt-panels">
+        {{ range $t, $tier := $d.tiers }}
+          <div class="zt-panel">
+            <p class="zt-tier-note">{{ $tier.note | safeHTML }}</p>
+            <div class="zt-tier-table">
+              {{ range $d.caps }}
+                <div class="zt-tier-row">
+                  <div class="zt-cap"><b>{{ .name }}</b><span>{{ .q }}</span></div>
+                  <ul class="zt-ctl">{{ range index .rows $t }}<li>{{ . | safeHTML }}</li>{{ end }}</ul>
+                </div>
+              {{ end }}
+            </div>
+          </div>
+        {{ end }}
+      </div>
+    </div>
+    <p class="zt-ladder"><span>over time:</span><span class="step">advanced</span><span>becomes</span><span class="step">enterprise</span><span>becomes</span><span class="step">foundation</span><span>· the tiers are a roadmap, not a finish line.</span></p>
+  </section>
+
+  {{/* ============================ 07 ============================ */}}
+  <section class="zt-part" id="workflow">
+    <div class="zt-head"><span class="zt-no">07</span><span class="zt-label">how to ship</span><h2>Build it in eight phases</h2></div>
+    <p class="zt-lede">The order you'd follow to put a new agent into production. Each phase closes off one of the threats from part 05.</p>
+    <ol class="zt-phases">
+      {{ range $i, $p := $d.phases }}
+        <li class="zt-phase">
+          <div class="zt-phase-top"><span class="zt-phase-n">{{ add $i 1 }}</span><h3>{{ $p.t }}</h3></div>
+          <p>{{ $p.d }}</p>
+          <ul>{{ range $p.items }}<li>{{ . }}</li>{{ end }}</ul>
+          <p class="zt-ask">{{ $p.ask }}</p>
+        </li>
+      {{ end }}
+    </ol>
+  </section>
+
+  {{/* ============================ 08 ============================ */}}
+  <section class="zt-part" id="ops">
+    <div class="zt-head"><span class="zt-no">08</span><span class="zt-label">day two</span><h2>Run the defense at machine speed</h2></div>
+    <p class="zt-lede">Attackers now move at machine speed, so defense has to as well. The guide's rule: <b>automate the bookkeeping around incidents, not the decisions.</b></p>
+    <div class="zt-split">
+      <div class="zt-m"><span class="zt-k">machines do the legwork</span><ul>{{ range $d.ops.machine }}<li>{{ . }}</li>{{ end }}</ul></div>
+      <div class="zt-h"><span class="zt-k">humans make the calls</span><ul>{{ range $d.ops.human }}<li>{{ . }}</li>{{ end }}</ul></div>
+    </div>
+    <ol class="zt-drills">
+      {{ range $i, $x := $d.ops.drills }}<li><span class="zt-d">{{ index (slice "a" "b" "c" "d" "e" "f") $i }}</span><div><b>{{ $x.t }}</b><p>{{ $x.d }}</p></div></li>{{ end }}
+    </ol>
+    <div class="zt-metrics">
+      {{ range $d.ops.metrics }}<div class="zt-metric"><span class="zt-k">{{ .k }}</span><div class="v">{{ .v }}</div><p>{{ .d }}</p></div>{{ end }}
+    </div>
+  </section>
+
+  {{/* ========================== recap =========================== */}}
+  <section class="zt-part" id="recap">
+    <div class="zt-recap">
+      <span class="zt-k">the whole guide in six lines</span>
+      <ol>{{ range $d.recap }}<li>{{ . | safeHTML }}</li>{{ end }}</ol>
+    </div>
+    <dl class="zt-gloss">
+      {{ range $d.glossary }}<div><dt>{{ .t }}</dt><dd>{{ .d }}</dd></div>{{ end }}
+    </dl>
+    <p class="zt-source">Source: Anthropic, <a href="{{ $d.source }}" rel="noopener">Zero Trust for AI Agents</a> (8 chapters), paraphrased and restructured for beginners.</p>
+  </section>
+
+  {{ partial "research-foot.html" . }}
+</article>
+{{ end }}
